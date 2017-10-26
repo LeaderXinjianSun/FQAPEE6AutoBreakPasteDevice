@@ -5,10 +5,18 @@
         xmlns:metro ="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FQAPEE6AutoBreakPasteDeviceUI"
+        xmlns:halcon="clr-namespace:HalconDotNet;assembly=halcondotnet"
         mc:Ignorable="d"
         Title="FQAPEE6AutoBreakPasteDeviceUI" Height="600" Width="1024"
                    WindowStartupLocation="CenterScreen"
-                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True">
+                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True" Loaded="MetroWindow_Loaded">
+    <metro:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Dictionary1.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </metro:MetroWindow.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"></ColumnDefinition>
@@ -18,6 +26,7 @@
             <RowDefinition Height="2*"></RowDefinition>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
-        <local:MessagePrint Grid.Column="1" Grid.Row="1"></local:MessagePrint>
+        <halcon:HSmartWindowControlWPF Grid.RowSpan="2" Margin="5" Name="hSmartWindowControlWPF1" HInitWindow="hSmartWindowControlWPF1_HInitWindow"></halcon:HSmartWindowControlWPF>
+        <TextBox Margin="5" Grid.Column="1" Grid.Row="1" x:Name="MsgTextBox" IsReadOnly="True" TextChanged="MsgTextBox_TextChanged"  FontSize="18" Background="Black" FontFamily="宋体" Foreground="White" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"></TextBox>
     </Grid>
 </metro:MetroWindow>
