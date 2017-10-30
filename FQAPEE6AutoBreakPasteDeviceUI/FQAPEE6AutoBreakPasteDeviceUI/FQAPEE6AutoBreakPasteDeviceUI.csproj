@@ -119,6 +119,12 @@
   <ItemGroup>
     <Resource Include="pictures_64px_1138363_easyicon.net.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BingLibrary\BingLibrary.csproj">
+      <Project>{4af25010-f781-4a08-886f-7b40fe1c772f}</Project>
+      <Name>BingLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

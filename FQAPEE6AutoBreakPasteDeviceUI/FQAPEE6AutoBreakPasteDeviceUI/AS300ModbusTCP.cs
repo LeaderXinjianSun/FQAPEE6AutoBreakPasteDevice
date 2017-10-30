@@ -238,7 +238,17 @@ namespace Leader.DeltaAS300ModbusTCP
             strDev = RegisterName;
             string hex = v.ToString("X4");
             data_to_dev[0] = Convert.ToUInt16(hex, 16);
-            ModbusPrecess(FunctionCode.WriteMultipleRegisters);
+            ModbusPrecess(FunctionCode.WriteSingleRegister);
+        }
+        public void WriteDWORD(string RegisterName, int v)
+        {
+            string hex = v.ToString("X8");
+            string hd1 = hex.Substring(0, 4);
+            string hd2 = hex.Substring(4, 4);
+            Int16[] vs = new Int16[2];
+            vs[0] = Convert.ToInt16(hd2, 16);
+            vs[1] = Convert.ToInt16(hd1, 16);
+            WriteMultRegisters(RegisterName, vs);
         }
         //public void WriteSigleRegister32(string RegisterName, UInt32 v)
         //{

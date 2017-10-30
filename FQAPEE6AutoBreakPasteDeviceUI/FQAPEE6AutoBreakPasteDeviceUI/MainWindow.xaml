@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="FQAPEE6AutoBreakPasteDeviceUI" Height="600" Width="1024"
                    WindowStartupLocation="CenterScreen"
-                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True" Loaded="MetroWindow_Loaded">
+                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True" Loaded="MetroWindow_Loaded" Closed="MetroWindow_Closed">
     <metro:MetroWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -28,5 +28,34 @@
         </Grid.RowDefinitions>
         <halcon:HSmartWindowControlWPF Grid.RowSpan="2" Margin="5" Name="hSmartWindowControlWPF1" HInitWindow="hSmartWindowControlWPF1_HInitWindow"></halcon:HSmartWindowControlWPF>
         <TextBox Margin="5" Grid.Column="1" Grid.Row="1" x:Name="MsgTextBox" IsReadOnly="True" TextChanged="MsgTextBox_TextChanged"  FontSize="18" Background="Black" FontFamily="宋体" Foreground="White" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"></TextBox>
+        <TabControl Grid.Column="1">
+            <TabItem Header="运行"></TabItem>
+            <TabItem Header="创建">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="拍照" Click="GrapButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                        <Button Content="Draw" Click="DrawButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                        <Button Content="创建" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="标定">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="标定" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                        <ComboBox Width="50" Height="25" Margin="0,0,50,0" SelectedIndex="0">
+                            <ComboBoxItem>1</ComboBoxItem>
+                            <ComboBoxItem>2</ComboBoxItem>
+                            <ComboBoxItem>3</ComboBoxItem>
+                        </ComboBox>
+                        <Button Content="旋转" Click="Calib2Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="计算" Click="CalcButton_Click" Style="{StaticResource ButtonBase}"></Button>
+
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
     </Grid>
 </metro:MetroWindow>
