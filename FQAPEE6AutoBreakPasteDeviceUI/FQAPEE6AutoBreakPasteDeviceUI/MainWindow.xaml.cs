@@ -19,6 +19,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using BingLibrary.hjb;
 using Leader.DeltaAS300ModbusTCP;
+using System.Windows.Threading;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -42,10 +43,13 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         private HShapeModel ShapeModel;
         private double Row, Column;
         DataAxisCoor CoorPar = new DataAxisCoor();
-        //TcpIpClient tcpClient = new TcpIpClient();
         AS300ModbusTCP aS300ModbusTCP;
         HTuple RowCheck, ColumnCheck, AngleCheck, ScaleCheck, Score;
         HTuple homMat2D;
+
+        object modbustcp = new object();
+        bool[] PLC_In;
+        DispatcherTimer dispatcherTimer = new DispatcherTimer();
         public MainWindow()
         {
             InitializeComponent();
@@ -149,14 +153,36 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
 
         }
 
-        private void Calib2Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void CalcButton_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+        private async void PLCRun()
+        {
+            while (true)
+            {
+                await Task.Delay(200);
+                try
+                {
+                    lock (modbustcp)
+                    {
+                        PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
+                        TextX1.Text = aS300ModbusTCP.ReadDWORD("D0").ToString();
+                        //aS300ModbusTCP.WriteDWORD("D2", -99999999);
+                    }
+                    //throw new Exception(PLC_In[0].ToString());
+                }
+                catch (Exception ex)
+                {
+                    MsgTextBox.Text = AddMessage(ex.Message);
+                }
+            }
+
+        }
+
+        private void AdjustButton_Click(object sender, RoutedEventArgs e)
+        {
+            dispatcherTimer.Start();
         }
 
         void Init()
@@ -183,24 +209,36 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
           //  img1.Dispose();
           //  ImgReduced.Dispose();
         }
+
+        private void Calib2Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
             hdev_export.GrapCamera();
             background_image = hdev_export.ho_Image;
             image = new HImage(background_image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
+            dispatcherTimer.Tick += new EventHandler(GrapContinue);
+            dispatcherTimer.Interval = new TimeSpan(1000000);//100毫微秒为单位
             try
             {
                 aS300ModbusTCP = new AS300ModbusTCP();
+                MsgTextBox.Text = AddMessage("PLC连接成功");
+                
+                PLCRun();
             }
             catch (Exception ex)
             {
                 MsgTextBox.Text = AddMessage(ex.Message);
             }
-            
-            MsgTextBox.Text = AddMessage("WindowLoaded");
         }
-
+        private void GrapContinue(Object sender, EventArgs e)
+        {
+            grapAction();
+        }
         private void MsgTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             MsgTextBox.ScrollToEnd();

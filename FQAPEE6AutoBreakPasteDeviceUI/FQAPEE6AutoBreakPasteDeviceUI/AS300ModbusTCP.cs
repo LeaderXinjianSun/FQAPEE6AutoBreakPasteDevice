@@ -201,8 +201,10 @@ namespace Leader.DeltaAS300ModbusTCP
         }
         public int ReadDWORD(string RegisterName)
         {
-            int[] DR = ReadRegisters(RegisterName, 2);
-            string hex = DR[0].ToString("X4") + DR[1].ToString("X4");
+            strDev = RegisterName;
+            dev_qty = 2;
+            ModbusPrecess(FunctionCode.ReadHoldingRegisters);
+            string hex = data_from_dev[1].ToString("X4") + data_from_dev[0].ToString("X4");
             return Convert.ToInt32(hex, 16);
         }
         //public int[] ReadRegisters32(string RegisterName, int count)

@@ -24,8 +24,10 @@ public partial class HDevelopExport
             //HOperatorSet.OpenFramegrabber("GenICamTL", 0, 0, 0, 0, 0, 0, "progressive", -1,
             //    "default", -1, "false", "default", "MER-500-14GM(00-21-49-00-5E-50)", 0,
             //    -1, out hv_AcqHandle);
+    //        HOperatorSet.OpenFramegrabber("DirectShow", 1, 1, 0, 0, 0, 0, "default", 8, "rgb",
+    //-1, "false", "default", "[0] HD USB Camera", 0, -1, out hv_AcqHandle);
             HOperatorSet.OpenFramegrabber("DirectShow", 1, 1, 0, 0, 0, 0, "default", 8, "rgb",
-    -1, "false", "default", "[0] HD USB Camera", 0, -1, out hv_AcqHandle);
+        -1, "false", "default", "[0] DMK 72AUC02", 0, -1, out hv_AcqHandle);
             //HOperatorSet.SetFramegrabberParam(hv_AcqHandle, "ExposureTime", 1000.0);
             return true;
         }

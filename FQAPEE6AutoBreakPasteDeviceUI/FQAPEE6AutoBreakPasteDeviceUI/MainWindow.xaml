@@ -28,34 +28,58 @@
         </Grid.RowDefinitions>
         <halcon:HSmartWindowControlWPF Grid.RowSpan="2" Margin="5" Name="hSmartWindowControlWPF1" HInitWindow="hSmartWindowControlWPF1_HInitWindow"></halcon:HSmartWindowControlWPF>
         <TextBox Margin="5" Grid.Column="1" Grid.Row="1" x:Name="MsgTextBox" IsReadOnly="True" TextChanged="MsgTextBox_TextChanged"  FontSize="18" Background="Black" FontFamily="宋体" Foreground="White" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"></TextBox>
-        <TabControl Grid.Column="1">
-            <TabItem Header="运行"></TabItem>
-            <TabItem Header="创建">
-                <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="拍照" Click="GrapButton_Click" Style="{StaticResource ButtonBase}"></Button>
-                        <Button Content="Draw" Click="DrawButton_Click" Style="{StaticResource ButtonBase}"></Button>
-                        <Button Content="创建" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <TabControl>
+                <TabItem Header="运行"></TabItem>
+                <TabItem Header="创建">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="拍照" Click="GrapButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                            <Button Content="Draw" Click="DrawButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                            <Button Content="创建" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                        </StackPanel>
                     </StackPanel>
+                </TabItem>
+                <TabItem Header="标定">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="调整" Click="AdjustButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="标定1" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                            <Button Content="标定2" Click="Calib2Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                            <Button Content="计算" Click="CalcButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+            <StackPanel Grid.Row="1" Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Row: "></TextBlock>
+                    <TextBlock Name="TextRow1"></TextBlock>
                 </StackPanel>
-            </TabItem>
-            <TabItem Header="标定">
-                <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="标定" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
-                        <ComboBox Width="50" Height="25" Margin="0,0,50,0" SelectedIndex="0">
-                            <ComboBoxItem>1</ComboBoxItem>
-                            <ComboBoxItem>2</ComboBoxItem>
-                            <ComboBoxItem>3</ComboBoxItem>
-                        </ComboBox>
-                        <Button Content="旋转" Click="Calib2Button_Click" Style="{StaticResource ButtonBase}"></Button>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="计算" Click="CalcButton_Click" Style="{StaticResource ButtonBase}"></Button>
-
-                    </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Column: "></TextBlock>
+                    <TextBlock Name="TextColumn1"></TextBlock>
                 </StackPanel>
-            </TabItem>
-        </TabControl>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Angle: "></TextBlock>
+                    <TextBlock Name="TextAngle1"></TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Score: "></TextBlock>
+                    <TextBlock Name="TextScore1"></TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <TextBlock Text="贴胶轴: "></TextBlock>
+                    <TextBlock Name="TextX1"></TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        
     </Grid>
 </metro:MetroWindow>
