@@ -20,6 +20,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using BingLibrary.hjb;
 using Leader.DeltaAS300ModbusTCP;
 using System.Windows.Threading;
+using System.Drawing;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -36,40 +37,60 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HDrawingObject.HDrawingObjectCallback cb;
         HObject ho_EdgeAmplitude;
         HObject background_image = null;
+        HObject background_image2 = null;
         object image_lock = new object();
         private HImage image;
         private HRegion Rectangle, ModelRegion;
         HWindow Window = null;
+        HWindow Window2 = null;
         private HShapeModel ShapeModel;
         private double Row, Column;
         DataAxisCoor CoorPar = new DataAxisCoor();
         AS300ModbusTCP aS300ModbusTCP;
         HTuple RowCheck, ColumnCheck, AngleCheck, ScaleCheck, Score;
         HTuple homMat2D;
+        Bitmap ImgBitmap;
 
         object modbustcp = new object();
         bool[] PLC_In;
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
+
+        delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
+        public class DeviceLostEventArgs : RoutedEventArgs
+        {
+            public DeviceLostEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent, source) { }
+
+        }
+
+        private void ICImagingControl_DeviceLost(object sender, TIS.Imaging.ICImagingControl.DeviceLostEventArgs e)
+        {
+            //throw new NotImplementedException();
+
+            //DeviceLostEventArgs args = new DeviceLostEventArgs(DeviceLostEvent, this);
+            //this.RaiseEvent(args);
+            MessageBox.Show("Device Lost");
+        }
         public MainWindow()
         {
             InitializeComponent();
             hdev_export = new HDevelopExport();
             drawing_objects = new List<HTuple>();
+            iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
             Init();
             
         }
 
         private void GrapButton_Click(object sender, RoutedEventArgs e)
         {
+            dispatcherTimer.Stop();
             grapAction();
         }
         private void grapAction()
         {
             OnClearAllObjects();
             hdev_export.GrapCamera();
-            background_image = hdev_export.ho_Image;
             image.Dispose();
-            image = new HImage(background_image);
+            image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
         }
         private void OnClearAllObjects()
@@ -146,6 +167,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
             b.Serialize(fileStream, CoorPar);
             fileStream.Close();
             hdev_export.CloseCamera();
+
+           
         }
 
         private void Calib1Button_Click(object sender, RoutedEventArgs e)
@@ -155,7 +178,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
 
         private void CalcButton_Click(object sender, RoutedEventArgs e)
         {
-
+            dispatcherTimer.Stop();
         }
         private async void PLCRun()
         {
@@ -194,32 +217,117 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
             BinaryFormatter b = new BinaryFormatter();
             CoorPar = b.Deserialize(fileStream) as DataAxisCoor;
             fileStream.Close();
-          //  GethomMat2D();
+            //GethomMat2D();
 
-          //  CalcRolCenter();
-          //  GetNewhomMat2D();
-          //  HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
-          //  Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
+            //CalcRolCenter();
+            //GetNewhomMat2D();
+            HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+            Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
 
-          //  Rectangle.AreaCenter(out Row, out Column);
-          //  ImgReduced = img1.ReduceDomain(Rectangle);
-          //  ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
-          //  ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-          //new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
-          //  img1.Dispose();
-          //  ImgReduced.Dispose();
+            Rectangle.AreaCenter(out Row, out Column);
+            ImgReduced = img1.ReduceDomain(Rectangle);
+            ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
+            ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
+          new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
+            img1.Dispose();
+            ImgReduced.Dispose();
         }
+        private void Action()
+        {
 
+            ShapeModel.FindScaledShapeModel(image, 0,
+                    new HTuple(360).TupleRad().D, 0.5, 2,
+                    0.4, 1, 0.5, "least_squares",
+                    4, 0.9, out RowCheck, out ColumnCheck,
+                    out AngleCheck, out ScaleCheck, out Score);
+
+
+
+            if (RowCheck.Length == 1)
+            {
+                Window.SetColor("green");
+                Window.SetDraw("fill");
+                Window.DispCross(RowCheck, ColumnCheck, 60, 0);
+                TextRow1.Text = RowCheck.DArr[0].ToString("F2");
+                TextColumn1.Text = ColumnCheck.DArr[0].ToString("F2");
+                TextAngle1.Text = AngleCheck.DArr[0].ToString("F2");
+                TextScore1.Text = Score.DArr[0].ToString("F2");
+
+            }
+        }
         private void Calib2Button_Click(object sender, RoutedEventArgs e)
         {
 
         }
 
+        private void ImgLive_Click(object sender, RoutedEventArgs e)
+        {
+            
+            if (iCImagingControl.DeviceValid)
+            {
+                ImgLive.IsEnabled = false;
+                ImgStop.IsEnabled = true;
+                iCImagingControl.LiveStart();
+            }
+        }
+
+        private void ImgStop_Click(object sender, RoutedEventArgs e)
+        {
+            if (iCImagingControl.DeviceValid)
+            {
+                iCImagingControl.LiveStop();
+                ImgLive.IsEnabled = true;
+                ImgStop.IsEnabled = false;
+            }
+        }
+        private void ImgSnap()
+        {
+            if (iCImagingControl.DeviceValid)
+            {
+                if (iCImagingControl.LiveVideoRunning)
+                {
+                    iCImagingControl.LiveStop();
+                    ImgLive.IsEnabled = true;
+                    ImgStop.IsEnabled = false;
+                }
+                iCImagingControl.MemorySnapImage();
+                if (ImgBitmap != null)
+                {
+                    ImgBitmap.Dispose();
+                }
+                ImgBitmap = new Bitmap(iCImagingControl.ImageActiveBuffer.Bitmap);
+            }
+        }
+
+        private void HWindowControlWPF2_HInitWindow(object sender, EventArgs e)
+        {
+            Window2 = HWindowControlWPF2.HalconWindow;
+            HWindowControlWPF2.HalconWindow.SetPart(0.0, 0.0, new HTuple(ImgBitmap.Height - 1), new HTuple(ImgBitmap.Width - 1));
+            HWindowControlWPF2.HalconWindow.AttachBackgroundToWindow(new HImage(BitmaptoHImage(ImgBitmap)));
+        }
+        private HObject BitmaptoHImage(Bitmap bmp)
+        {
+            HObject ho_Image;
+            HOperatorSet.GenEmptyObj(out ho_Image);
+            // Lock the bitmap's bits.    
+            System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height);
+            System.Drawing.Imaging.BitmapData bmpData =
+                bmp.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite,
+                bmp.PixelFormat);
+            HOperatorSet.GenImageInterleaved(out ho_Image, bmpData.Scan0, "bgrx", bmp.Width, bmp.Height, -1, "byte", bmp.Width, bmp.Height, 0, 0, -1, 0);
+            return ho_Image;
+        }
+
+        private void USBCameraAction_Click(object sender, RoutedEventArgs e)
+        {
+            ImgSnap();
+            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+        }
+
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
             hdev_export.GrapCamera();
-            background_image = hdev_export.ho_Image;
-            image = new HImage(background_image);
+            image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
             dispatcherTimer.Tick += new EventHandler(GrapContinue);
             dispatcherTimer.Interval = new TimeSpan(1000000);//100毫微秒为单位
@@ -234,10 +342,40 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
             {
                 MsgTextBox.Text = AddMessage(ex.Message);
             }
+
+
+            try
+            {
+                iCImagingControl.LoadDeviceStateFromFile("device.xml", true);
+            }
+            catch (Exception ex)
+            {
+
+                MsgTextBox.Text = AddMessage(ex.Message);
+            }
+
+            if (!iCImagingControl.DeviceValid)
+            {
+                iCImagingControl.ShowDeviceSettingsDialog();
+            }
+            //imageViewer.viewController.repaint();
+
+            if (iCImagingControl.DeviceValid)
+            {
+                iCImagingControl.SaveDeviceStateToFile("device.xml");
+                iCImagingControl.Size = new System.Drawing.Size(600, 400);
+                iCImagingControl.LiveDisplayDefault = false;
+                iCImagingControl.LiveDisplayHeight = iCImagingControl.Height;
+                iCImagingControl.LiveDisplayWidth = iCImagingControl.Width;
+                ImgSnap();
+                //SmartWindowControlWPF2Init();
+            }
+            ImgStop.IsEnabled = false;
         }
         private void GrapContinue(Object sender, EventArgs e)
         {
             grapAction();
+            Action();
         }
         private void MsgTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
