@@ -33,6 +33,7 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         string MessageStr = "";
         HDevelopExport hdev_export;
         List<HTuple> drawing_objects;
+        HTuple ShuXian, HengXian;
         DisplayResultsDelegate display_results_delegate;
         HDrawingObject.HDrawingObjectCallback cb;
         HObject ho_EdgeAmplitude;
@@ -117,12 +118,26 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             background_image = hdev_export.ho_Image;
             hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
             hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
-            SetCallbacks(draw_id);
+            SetCallbacks(draw_id, 0);
         }
-        private void SetCallbacks(HTuple draw_id)
+        private void SetCallbacks(HTuple draw_id,int option)
         {
             // Set callbacks for all relevant interactions
-            drawing_objects.Add(draw_id);
+            switch (option)
+            {
+                case 0:
+                    drawing_objects.Add(draw_id);
+                    break;
+                case 1:
+                    ShuXian = draw_id;
+                    break;
+                case 2:
+                    HengXian = draw_id;
+                    break;
+                default:
+                    break;
+            }
+            
             IntPtr ptr = Marshal.GetFunctionPointerForDelegate(cb);
             HOperatorSet.SetDrawingObjectCallback(draw_id, "on_resize", ptr);
             HOperatorSet.SetDrawingObjectCallback(draw_id, "on_drag", ptr);
@@ -152,21 +167,16 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
                 HOperatorSet.GenRectangle2(out Rec2, hv_ParamValues2.DArr[0], hv_ParamValues2.DArr[1], hv_ParamValues2.DArr[2], hv_ParamValues2.DArr[3], hv_ParamValues2.DArr[4]);
                 HOperatorSet.SymmDifference(Rec1, Rec2,out Rec3);
                 Rectangle = new HRegion(Rec3);
-                //CoorPar.RectangleRow1 = hv_ParamValues.IArr[0];
-                //CoorPar.RectangleColumn1 = hv_ParamValues.IArr[1];
-                //CoorPar.RectangleRow2 = hv_ParamValues.IArr[2];
-                //CoorPar.RectangleColumn2 = hv_ParamValues.IArr[3];
 
-                //Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
                 Rectangle.AreaCenter(out Row, out Column);
                 //                //hdev_export.GrapCamera();
                 image.Dispose();
                 image = new HImage(hdev_export.ho_Image);
                 image.DispObj(Window);
                 ImgReduced = image.ReduceDomain(Rectangle);
-                ImgReduced.InspectShapeModel(out ModelRegion, 1, 40);
+                ImgReduced.InspectShapeModel(out ModelRegion, 1, 15);
                 ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
+new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 10);
                 Window.SetColor("green");
                 Window.SetDraw("margin");
                 ModelRegion.DispObj(Window);
@@ -241,27 +251,32 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
 
             //CalcRolCenter();
             //GetNewhomMat2D();
-          //  HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
-          //  Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
+            //  HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+            //  Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
 
-          //  Rectangle.AreaCenter(out Row, out Column);
-          //  ImgReduced = img1.ReduceDomain(Rectangle);
-          //  ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
-          //  ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-          //new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
+            //  Rectangle.AreaCenter(out Row, out Column);
+            //  ImgReduced = img1.ReduceDomain(Rectangle);
+            //  ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
+            //  ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
+            //new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
 
-          //  img1.Dispose();
-          //  ImgReduced.Dispose();
+            //  img1.Dispose();
+            //  ImgReduced.Dispose();
             ShapeModel = new HShapeModel(System.Environment.CurrentDirectory + "\\ShapeModel.shm");
         }
         private void Action()
         {
 
-            ShapeModel.FindScaledShapeModel(image, 0,
-                    new HTuple(360).TupleRad().D, 0.5, 2,
-                    0.4, 1, 0.5, "least_squares",
+            //ShapeModel.FindScaledShapeModel(image, 0,
+            //        new HTuple(360).TupleRad().D, 0.5, 2,
+            //        0.4, 1, 0.5, "least_squares",
+            //        4, 0.9, out RowCheck, out ColumnCheck,
+            //        out AngleCheck, out ScaleCheck, out Score);
+            ShapeModel.FindShapeModel(image, 0,
+                    new HTuple(360).TupleRad().D, 0.5, 1,
+                    0.4, "least_squares",
                     4, 0.9, out RowCheck, out ColumnCheck,
-                    out AngleCheck, out ScaleCheck, out Score);
+                    out AngleCheck, out Score);
 
 
 
@@ -276,6 +291,10 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
                 TextScore1.Text = Score.DArr[0].ToString("F2");
 
             }
+        }
+        private void Action2()
+        {
+
         }
         private void Calib2Button_Click(object sender, RoutedEventArgs e)
         {
@@ -344,6 +363,114 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
         {
             ImgSnap();
             HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+        }
+        /// <summary>
+        /// 找竖线
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DrawButton_Click1(object sender, RoutedEventArgs e)
+        {
+            HTuple draw_id;
+
+            hdev_export.GrapCamera();
+            background_image = hdev_export.ho_Image;
+            hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
+            hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
+            SetCallbacks(draw_id, 1);
+
+        }
+        /// <summary>
+        /// 创建直线
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CreateButton_Click1(object sender, RoutedEventArgs e)
+        {
+            //if (ShuXian != null && HengXian != null)
+            //{
+
+            //}
+            HTuple hv_ParamValues;
+            if (ShuXian != null)
+            {
+                HOperatorSet.GetDrawingObjectParams(ShuXian, (new HTuple("row")).TupleConcat(new HTuple("column")
+).TupleConcat(new HTuple("phi")).TupleConcat(new HTuple("length1")).TupleConcat(new HTuple("length2")), out hv_ParamValues);
+                DataAxisCoor.MRectangle2 rec2 = new DataAxisCoor.MRectangle2();
+                rec2.row = hv_ParamValues.DArr[0];
+                rec2.column = hv_ParamValues.DArr[1];
+                rec2.phi = hv_ParamValues.DArr[2];
+                rec2.length1 = hv_ParamValues.DArr[3];
+                rec2.length2 = hv_ParamValues.DArr[4];
+                CoorPar.ShuXiam = rec2;
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("竖线区域不存在");
+            }
+            if (HengXian != null)
+            {
+                HOperatorSet.GetDrawingObjectParams(HengXian, (new HTuple("row")).TupleConcat(new HTuple("column")
+).TupleConcat(new HTuple("phi")).TupleConcat(new HTuple("length1")).TupleConcat(new HTuple("length2")), out hv_ParamValues);
+                DataAxisCoor.MRectangle2 rec2 = new DataAxisCoor.MRectangle2();
+                rec2.row = hv_ParamValues.DArr[0];
+                rec2.column = hv_ParamValues.DArr[1];
+                rec2.phi = hv_ParamValues.DArr[2];
+                rec2.length1 = hv_ParamValues.DArr[3];
+                rec2.length2 = hv_ParamValues.DArr[4];
+                CoorPar.HengXiam = rec2;
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("横线区域不存在");
+            }
+            grapAction();
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                DataAxisCoor.MRectangle2 rec2 = new DataAxisCoor.MRectangle2();
+                rec2.row = RowCheck.DArr[0];
+                rec2.column = ColumnCheck.DArr[0];
+                rec2.phi = AngleCheck.DArr[0];
+                rec2.length1 = 0;
+                rec2.length2 = 0;
+                CoorPar.MoBan = rec2;
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("模板匹配失败");
+            }
+
+
+        }
+
+        //http://jingyan.baidu.com/article/2c8c281dfbf3dd0009252a7b.html
+        /// <summary>
+        /// 找横线
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DrawButton_Click2(object sender, RoutedEventArgs e)
+        {
+            HTuple draw_id;
+
+            hdev_export.GrapCamera();
+            background_image = hdev_export.ho_Image;
+            hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
+            hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
+            SetCallbacks(draw_id, 2);
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -452,40 +579,18 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
     [Serializable]
     public class DataAxisCoor
     {
-        public double RectangleRow1;
-        public double RectangleColumn1;
-        public double RectangleRow2;
-        public double RectangleColumn2;
-        public double[,] Coor;
-        public double[,] CoorU;
-        public double deltaD = 5;
-        public double deltaU = 15;
-        public double[,] deltaCoor;
-        public double[] deltaCoorU;
-        public double Pos_x;
-        public double Pos_y;
-        public double Center_x;
-        public double Center_y;
-        public double Center_r;
-        public void CalcDeltaCoor()
+        [Serializable]
+        public class MRectangle2
         {
-            deltaCoor = new double[9, 2];
-            deltaCoor[0, 0] = deltaD * (-1); deltaCoor[0, 1] = deltaD * (-1);
-            deltaCoor[1, 0] = deltaD * (0); deltaCoor[1, 1] = deltaD * (-1);
-            deltaCoor[2, 0] = deltaD * (1); deltaCoor[2, 1] = deltaD * (-1);
-            deltaCoor[3, 0] = deltaD * (1); deltaCoor[3, 1] = deltaD * (0);
-            deltaCoor[4, 0] = deltaD * (0); deltaCoor[4, 1] = deltaD * (0);
-            deltaCoor[5, 0] = deltaD * (-1); deltaCoor[5, 1] = deltaD * (0);
-            deltaCoor[6, 0] = deltaD * (-1); deltaCoor[6, 1] = deltaD * (1);
-            deltaCoor[7, 0] = deltaD * (0); deltaCoor[7, 1] = deltaD * (1);
-            deltaCoor[8, 0] = deltaD * (1); deltaCoor[8, 1] = deltaD * (1);
+            public double row;
+            public double column;
+            public double phi;
+            public double length1;
+            public double length2;
         }
-        public void CalcDelyaCoorU()
-        {
-            deltaCoorU = new double[3];
-            deltaCoorU[0] = deltaU * (-1);
-            deltaCoorU[1] = deltaU * (0);
-            deltaCoorU[2] = deltaU * (1);
-        }
+        public MRectangle2 ShuXiam;
+        public MRectangle2 HengXiam;
+        public MRectangle2 MoBan;
     }
+
 }

@@ -44,11 +44,15 @@
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="拍照" Click="GrapButton_Click" Style="{StaticResource ButtonBase}"></Button>
-                                    <Button Content="画框" Click="DrawButton_Click" Style="{StaticResource ButtonBase}"></Button>
-                                    
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Content="创建" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="模板" Click="DrawButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="竖线" Click="DrawButton_Click1" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="横线" Click="DrawButton_Click2" Style="{StaticResource ButtonBase}"></Button>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="创建模板" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="创建直线" Click="CreateButton_Click1" Style="{StaticResource ButtonBase}"></Button>
                                 </StackPanel>
                             </StackPanel>
                             
