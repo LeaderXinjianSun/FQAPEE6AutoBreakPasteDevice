@@ -108,11 +108,15 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         private void DrawButton_Click(object sender, RoutedEventArgs e)
         {
             HTuple draw_id;
-            OnClearAllObjects();
+            if (drawing_objects.Count >= 2)
+            {
+                OnClearAllObjects();
+            }
+            
             hdev_export.GrapCamera();
             background_image = hdev_export.ho_Image;
             hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
-            hdev_export.add_new_drawing_object("rectangle1", hSmartWindowControlWPF1.HalconID, out draw_id);
+            hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
             SetCallbacks(draw_id);
         }
         private void SetCallbacks(HTuple draw_id)
@@ -131,33 +135,50 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         }
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            HTuple hv_ParamValues;
+            HTuple hv_ParamValues1, hv_ParamValues2;
+            HObject Rec1, Rec2, Rec3;
             HImage ImgReduced;
-            if (drawing_objects.Count > 0)
+
+            if (drawing_objects.Count >= 2)
             {
-                HOperatorSet.GetDrawingObjectParams(drawing_objects[0], (new HTuple("row1")).TupleConcat(new HTuple("column1")
-                    ).TupleConcat(new HTuple("row2")).TupleConcat(new HTuple("column2")), out hv_ParamValues);
+                HOperatorSet.GetDrawingObjectParams(drawing_objects[0], (new HTuple("row")).TupleConcat(new HTuple("column")
+                ).TupleConcat(new HTuple("phi")).TupleConcat(new HTuple("length1")).TupleConcat(new HTuple("length2")), out hv_ParamValues1);
+                HOperatorSet.GetDrawingObjectParams(drawing_objects[1], (new HTuple("row")).TupleConcat(new HTuple("column")
+                ).TupleConcat(new HTuple("phi")).TupleConcat(new HTuple("length1")).TupleConcat(new HTuple("length2")), out hv_ParamValues2);
+                HOperatorSet.GenEmptyObj(out Rec1);
+                HOperatorSet.GenEmptyObj(out Rec2);
+                HOperatorSet.GenEmptyObj(out Rec3);
+                HOperatorSet.GenRectangle2(out Rec1, hv_ParamValues1.DArr[0], hv_ParamValues1.DArr[1], hv_ParamValues1.DArr[2], hv_ParamValues1.DArr[3], hv_ParamValues1.DArr[4]);
+                HOperatorSet.GenRectangle2(out Rec2, hv_ParamValues2.DArr[0], hv_ParamValues2.DArr[1], hv_ParamValues2.DArr[2], hv_ParamValues2.DArr[3], hv_ParamValues2.DArr[4]);
+                HOperatorSet.SymmDifference(Rec1, Rec2,out Rec3);
+                Rectangle = new HRegion(Rec3);
+                //CoorPar.RectangleRow1 = hv_ParamValues.IArr[0];
+                //CoorPar.RectangleColumn1 = hv_ParamValues.IArr[1];
+                //CoorPar.RectangleRow2 = hv_ParamValues.IArr[2];
+                //CoorPar.RectangleColumn2 = hv_ParamValues.IArr[3];
 
-                CoorPar.RectangleRow1 = hv_ParamValues.IArr[0];
-                CoorPar.RectangleColumn1 = hv_ParamValues.IArr[1];
-                CoorPar.RectangleRow2 = hv_ParamValues.IArr[2];
-                CoorPar.RectangleColumn2 = hv_ParamValues.IArr[3];
-
-                Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
+                //Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
                 Rectangle.AreaCenter(out Row, out Column);
-                //hdev_export.GrapCamera();
+                //                //hdev_export.GrapCamera();
                 image.Dispose();
                 image = new HImage(hdev_export.ho_Image);
                 image.DispObj(Window);
                 ImgReduced = image.ReduceDomain(Rectangle);
-                ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);
+                ImgReduced.InspectShapeModel(out ModelRegion, 1, 40);
                 ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
+new HTuple(1.0).TupleRad().D, "none", "use_polarity", 40, 10);
                 Window.SetColor("green");
                 Window.SetDraw("margin");
                 ModelRegion.DispObj(Window);
                 image.WriteImage("tiff", 0, System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+                ShapeModel.WriteShapeModel(System.Environment.CurrentDirectory + "\\ShapeModel.shm");
             }
+            else
+            {
+                MsgTextBox.Text = AddMessage("少于2个Region，无法创建");
+            }
+                
+            
         }
 
         private void MetroWindow_Closed(object sender, EventArgs e)
@@ -210,7 +231,6 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
 
         void Init()
         {
-            HImage ImgReduced;
             hdev_export.OpenCamera();
 
             FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -221,16 +241,18 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
 
             //CalcRolCenter();
             //GetNewhomMat2D();
-            HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
-            Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
+          //  HImage img1 = new HImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+          //  Rectangle = new HRegion(CoorPar.RectangleRow1, CoorPar.RectangleColumn1, CoorPar.RectangleRow2, CoorPar.RectangleColumn2);
 
-            Rectangle.AreaCenter(out Row, out Column);
-            ImgReduced = img1.ReduceDomain(Rectangle);
-            ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
-            ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-          new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
-            img1.Dispose();
-            ImgReduced.Dispose();
+          //  Rectangle.AreaCenter(out Row, out Column);
+          //  ImgReduced = img1.ReduceDomain(Rectangle);
+          //  ImgReduced.InspectShapeModel(out ModelRegion, 1, 20);//Constract(20)可设置，类似于阀值，值月底黑色像素越明显
+          //  ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
+          //new HTuple(1.0).TupleRad().D, "none", "use_polarity", 20, 10);
+
+          //  img1.Dispose();
+          //  ImgReduced.Dispose();
+            ShapeModel = new HShapeModel(System.Environment.CurrentDirectory + "\\ShapeModel.shm");
         }
         private void Action()
         {
