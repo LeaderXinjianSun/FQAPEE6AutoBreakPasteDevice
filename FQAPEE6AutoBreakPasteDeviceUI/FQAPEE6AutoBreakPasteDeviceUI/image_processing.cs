@@ -30,7 +30,7 @@ public partial class HDevelopExport
         //-1, "false", "default", "[0] DMK 72AUC02", 0, -1, out hv_AcqHandle);
             HOperatorSet.OpenFramegrabber("GigEVision", 0, 0, 0, 0, 0, 0, "default", -1,
     "default", -1, "false", "default", "BottomCamera", 0, -1, out hv_AcqHandle);
-            HOperatorSet.SetFramegrabberParam(hv_AcqHandle, "ExposureTime", 550.0);
+            HOperatorSet.SetFramegrabberParam(hv_AcqHandle, "ExposureTime", 850.0);
             return true;
         }
         catch

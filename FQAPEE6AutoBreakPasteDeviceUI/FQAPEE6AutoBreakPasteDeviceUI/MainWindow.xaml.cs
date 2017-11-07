@@ -174,9 +174,9 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
                 image = new HImage(hdev_export.ho_Image);
                 image.DispObj(Window);
                 ImgReduced = image.ReduceDomain(Rectangle);
-                ImgReduced.InspectShapeModel(out ModelRegion, 1, 15);
+                ImgReduced.InspectShapeModel(out ModelRegion, 1, 10);
                 ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 10);
+new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
                 Window.SetColor("green");
                 Window.SetDraw("margin");
                 ModelRegion.DispObj(Window);
@@ -204,6 +204,99 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 10);
 
         private void Calib1Button_Click(object sender, RoutedEventArgs e)
         {
+
+
+
+            grapAction();
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                if (Score.D >= 0.9)
+                {
+                    double shuxian_x, shuxian_y;
+                    RolConvert(CoorPar.ShuXiam.row, CoorPar.ShuXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out shuxian_x, out shuxian_y);
+                    shuxian_x += RowCheck.D - CoorPar.MoBan.row;
+                    shuxian_y += ColumnCheck.D - CoorPar.MoBan.column;
+                    HObject Rec1;
+                    HOperatorSet.GenRectangle2(out Rec1, shuxian_x, shuxian_y, CoorPar.ShuXiam.phi + AngleCheck.D, CoorPar.ShuXiam.length1, CoorPar.ShuXiam.length2);
+                    HRegion Rec1Region = new HRegion(Rec1);
+                    
+
+                    double hengxian_x, hengxian_y;
+                    RolConvert(CoorPar.HengXiam.row, CoorPar.HengXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out hengxian_x, out hengxian_y);
+                    hengxian_x += RowCheck.D - CoorPar.MoBan.row;
+                    hengxian_y += ColumnCheck.D - CoorPar.MoBan.column;
+                    HObject Rec2;
+                    HOperatorSet.GenRectangle2(out Rec2, hengxian_x, hengxian_y, CoorPar.HengXiam.phi + AngleCheck.D, CoorPar.HengXiam.length1, CoorPar.HengXiam.length2);
+                    HRegion Rec2Region = new HRegion(Rec2);
+
+                    Window.SetColor("red");
+                    Window.SetDraw("fill");
+
+                    HImage ImgReduced = image.ReduceDomain(Rec1Region);
+                    HObject EdgeAmplitude, EdgeDirection;
+                    HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+                    HObject region1;
+                    HOperatorSet.Threshold(EdgeAmplitude, out region1, 10, 20);
+                    //region1.DispObj(Window);
+                    HTuple angle, dist;
+                    HOperatorSet.HoughLines(region1, 8, 400, 30, 30, out angle, out dist);
+                    HObject LinesHNF;
+                    if (dist.Length > 0)
+                    {
+                        HOperatorSet.GenRegionHline(out LinesHNF, angle, dist);
+                        LinesHNF.DispObj(Window);
+                    }
+
+                    ImgReduced = image.ReduceDomain(Rec2Region);
+                    HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+                    HOperatorSet.Threshold(EdgeAmplitude, out region1, 50, 255);
+                    //region1.DispObj(Window);
+                    HOperatorSet.HoughLines(region1, 8, 300, 30, 30, out angle, out dist);
+                    HObject LinesHNF1;
+                    
+                    if (dist.Length > 0)
+                    {
+                        HOperatorSet.GenRegionHline(out LinesHNF1, angle, dist);
+                        LinesHNF1.DispObj(Window);
+                    }
+
+
+                    
+                    MsgTextBox.Text = AddMessage("查找模板完成");
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("模板质量低");
+                }
+                //DataAxisCoor.MRectangle2 rec2 = new DataAxisCoor.MRectangle2();
+                //rec2.row = RowCheck.DArr[0];
+                //rec2.column = ColumnCheck.DArr[0];
+                //rec2.phi = AngleCheck.DArr[0];
+                //rec2.length1 = 0;
+                //rec2.length2 = 0;
+                //CoorPar.MoBan = rec2;
+                //FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                //BinaryFormatter b = new BinaryFormatter();
+                //b.Serialize(fileStream, CoorPar);
+                //fileStream.Close();
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("未找到模板");
+            }
+
+
+
+
+
+
+
+
+
+
+
+
 
         }
 
@@ -455,8 +548,13 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 10);
 
 
         }
-
-        //http://jingyan.baidu.com/article/2c8c281dfbf3dd0009252a7b.html
+        public void RolConvert(double x,double y,double rx0,double ry0,double a,out double x0,out double y0)
+        {
+            //http://jingyan.baidu.com/article/2c8c281dfbf3dd0009252a7b.html
+            x0 = (x - rx0) * Math.Cos(a) - (y - ry0) * Math.Sin(a) + rx0;
+            y0 = (x - rx0) * Math.Sin(a) + (y - ry0) * Math.Cos(a) + ry0;
+        }
+       
         /// <summary>
         /// 找横线
         /// </summary>
