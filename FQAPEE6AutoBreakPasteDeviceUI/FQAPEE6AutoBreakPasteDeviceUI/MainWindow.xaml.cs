@@ -314,7 +314,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
                     lock (modbustcp)
                     {
                         PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
-                        TextX1.Text = aS300ModbusTCP.ReadDWORD("D0").ToString();
+                        TextX1.Text = aS300ModbusTCP.ReadDWORD("D6").ToString();
                         //aS300ModbusTCP.WriteDWORD("D2", -99999999);
                     }
                     //throw new Exception(PLC_In[0].ToString());
