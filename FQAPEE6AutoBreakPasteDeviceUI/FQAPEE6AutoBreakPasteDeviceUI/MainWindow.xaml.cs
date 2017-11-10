@@ -306,6 +306,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
         }
         private async void PLCRun()
         {
+            bool ScanCMD = false,USBCameraCMD = false,GigECMD = false;
             while (true)
             {
                 await Task.Delay(200);
@@ -316,6 +317,35 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
                         PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
                         TextX1.Text = aS300ModbusTCP.ReadDWORD("D6").ToString();
                         //aS300ModbusTCP.WriteDWORD("D2", -99999999);
+                    }
+                    if (ScanCMD != PLC_In[0])
+                    {
+                        ScanCMD = PLC_In[0];
+                        if (ScanCMD)
+                        {
+                            await Task.Delay(200);
+                            aS300ModbusTCP.WriteSigleCoil("M5100",true);
+                        }
+                    }
+                    if (USBCameraCMD != PLC_In[1])
+                    {
+                        USBCameraCMD = PLC_In[1];
+                        if (USBCameraCMD)
+                        {
+                            ImgSnap();
+                            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                            aS300ModbusTCP.WriteSigleCoil("M5102", true);
+                        }
+                    }
+                    if (GigECMD != PLC_In[2])
+                    {
+                        GigECMD = PLC_In[2];
+                        if (GigECMD)
+                        {
+                            dispatcherTimer.Stop();
+                            grapAction();
+                            aS300ModbusTCP.WriteSigleCoil("M5140", true);
+                        }
                     }
                     //throw new Exception(PLC_In[0].ToString());
                 }
