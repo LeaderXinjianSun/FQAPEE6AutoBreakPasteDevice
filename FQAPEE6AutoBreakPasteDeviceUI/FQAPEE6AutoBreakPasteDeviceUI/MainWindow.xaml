@@ -69,6 +69,14 @@
                                 </StackPanel>
                             </StackPanel>
                         </TabItem>
+                        <TabItem Header="其他">
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="读" Name="ReadCoor" ToolTip="从PLC读取数据到文件" Click="ReadCoor_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="写" Name="WriteCoor" ToolTip="从文件加载数据到PLC" Click="WriteCoor_Click" Style="{StaticResource ButtonBase}"></Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </TabItem>
                     </TabControl>
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">

@@ -21,6 +21,9 @@ using BingLibrary.hjb;
 using Leader.DeltaAS300ModbusTCP;
 using System.Windows.Threading;
 using System.Drawing;
+using OfficeOpenXml;
+using Microsoft.Win32;
+using System.Windows.Forms;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -51,6 +54,7 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HTuple RowCheck, ColumnCheck, AngleCheck, ScaleCheck, Score;
         HTuple homMat2D;
         Bitmap ImgBitmap;
+        bool Window2Init = false;
 
         object modbustcp = new object();
         bool[] PLC_In;
@@ -69,7 +73,7 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
 
             //DeviceLostEventArgs args = new DeviceLostEventArgs(DeviceLostEvent, this);
             //this.RaiseEvent(args);
-            MessageBox.Show("Device Lost");
+            System.Windows.Forms.MessageBox.Show("Device Lost");
         }
         public MainWindow()
         {
@@ -174,9 +178,9 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
                 image = new HImage(hdev_export.ho_Image);
                 image.DispObj(Window);
                 ImgReduced = image.ReduceDomain(Rectangle);
-                ImgReduced.InspectShapeModel(out ModelRegion, 1, 10);
+                ImgReduced.InspectShapeModel(out ModelRegion, 1, 25);
                 ShapeModel = new HShapeModel(ImgReduced, 4, 0, new HTuple(360.0).TupleRad().D,
-new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
+new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 Window.SetColor("green");
                 Window.SetDraw("margin");
                 ModelRegion.DispObj(Window);
@@ -304,6 +308,147 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
         {
             dispatcherTimer.Stop();
         }
+        struct DWORDStruct
+        {
+            public String RigisterName;
+            public int Value;
+        }
+        private async void WriteCoorData()
+        {
+            FileStream stream;
+            WriteCoor.IsEnabled = false;
+            System.Windows.Forms.OpenFileDialog ofdialog = new System.Windows.Forms.OpenFileDialog();
+            ofdialog.InitialDirectory = "D:\\";
+            ofdialog.Filter = "Microsoft Excel 2013|*.xlsx";
+            ofdialog.RestoreDirectory = true;
+            if (ofdialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                
+                try
+                {
+                    stream = new FileStream(ofdialog.FileName, FileMode.Open);
+
+                }
+                catch (IOException ex)
+                {
+                    MsgTextBox.Text = AddMessage(ex.Message);
+                    WriteCoor.IsEnabled = true;
+                    return;
+                }
+                using (stream)
+                {
+                    ExcelPackage package = new ExcelPackage(stream);
+                    ExcelWorksheet sheet = package.Workbook.Worksheets[1];
+                    if (sheet == null)
+                    {
+                        MsgTextBox.Text = AddMessage("Excel format error!");
+                        WriteCoor.IsEnabled = true;
+                        return;
+                    }
+                    if (!sheet.Cells[1,1].Value.Equals("NAME"))
+                    {
+                        MsgTextBox.Text = AddMessage("Excel format error!");
+                        WriteCoor.IsEnabled = true;
+                        return;
+                    }
+                    int lastRow = sheet.Dimension.End.Row;
+                    for (int i = 2; i < lastRow; i++)
+                    {
+                        if (sheet.Cells[i,1].Value != null && sheet.Cells[i, 2].Value != null)
+                        {
+                            await Task.Delay(10);
+                            lock (modbustcp)
+                            {
+                                aS300ModbusTCP.WriteDWORD(sheet.Cells[i,1].Value.ToString(), int.Parse(sheet.Cells[i, 2].Value.ToString()));
+                            }
+                        }
+                    }
+                    MsgTextBox.Text = AddMessage("写入坐标数据完成");
+                    WriteCoor.IsEnabled = true;
+                }
+            }
+            else
+            {
+                WriteCoor.IsEnabled = true;
+                return;
+            }
+
+        }
+        private async void ReadCoorData()
+        {
+            ReadCoor.IsEnabled = false;
+            List<DWORDStruct> DD20000 = new List<DWORDStruct>();
+
+
+            System.Windows.Forms.SaveFileDialog sfdialog = new System.Windows.Forms.SaveFileDialog();
+            sfdialog.Filter = "Microsoft Excel 2013|*.xlsx";
+            sfdialog.DefaultExt = "xlsx";
+            sfdialog.AddExtension = true;
+            sfdialog.Title = "Save Excel";
+            sfdialog.InitialDirectory = "D:\\";
+            sfdialog.FileName = DateTime.Now.ToString("yyyyMMdd") + DateTime.Now.ToString("HHmmss");
+            DialogResult? result = sfdialog.ShowDialog();
+            if (result == null || result.Value != System.Windows.Forms.DialogResult.OK)
+            {
+                ReadCoor.IsEnabled = true;
+                return;
+                
+            }
+            else
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    await Task.Delay(10);
+                    DWORDStruct dw = new DWORDStruct();
+                    dw.RigisterName = "D" + (20000 + 2 * i).ToString();
+                    lock (modbustcp)
+                    {
+                        dw.Value = aS300ModbusTCP.ReadDWORD(dw.RigisterName);
+                    }
+                    DD20000.Add(dw);
+                }
+                FileStream stream;
+                try
+                {
+                    stream = new FileStream(sfdialog.FileName,FileMode.Create);
+                }
+                catch (IOException ex)
+                {
+
+                    ReadCoor.IsEnabled = true;
+                    MsgTextBox.Text = AddMessage(ex.Message);
+                    return;
+                }
+                using (stream)
+                {
+                    ExcelPackage package = new ExcelPackage(stream);
+                    package.Workbook.Worksheets.Add("PLC坐标数据");
+                    ExcelWorksheet sheet = package.Workbook.Worksheets[1];
+                    sheet.Cells[1, 1].Value = "NAME";
+                    sheet.Cells[1, 2].Value = "VALUE";
+                    using (ExcelRange range = sheet.Cells[1,1,1,2])
+                    {
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Gray);
+                        range.AutoFitColumns(4);
+                    }
+                    int pos = 2;
+                    foreach (DWORDStruct item in DD20000)
+                    {
+                        sheet.Cells[pos, 1].Value = item.RigisterName;
+                        sheet.Cells[pos, 2].Value = item.Value;
+                        pos++;
+                    }
+                    package.Save();
+                    
+                    ReadCoor.IsEnabled = true;
+                    MsgTextBox.Text = AddMessage("导出坐标数据完成");
+                }
+                
+            }
+
+     
+        }
         private async void PLCRun()
         {
             bool ScanCMD = false,USBCameraCMD = false,GigECMD = false;
@@ -333,7 +478,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
                         if (USBCameraCMD)
                         {
                             ImgSnap();
-                            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                            if (Window2Init)
+                            {
+                                HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                            }
+                            
                             aS300ModbusTCP.WriteSigleCoil("M5102", true);
                         }
                     }
@@ -468,6 +617,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
             Window2 = HWindowControlWPF2.HalconWindow;
             HWindowControlWPF2.HalconWindow.SetPart(0.0, 0.0, new HTuple(ImgBitmap.Height - 1), new HTuple(ImgBitmap.Width - 1));
             HWindowControlWPF2.HalconWindow.AttachBackgroundToWindow(new HImage(BitmaptoHImage(ImgBitmap)));
+            Window2Init = true;
+
         }
         private HObject BitmaptoHImage(Bitmap bmp)
         {
@@ -584,7 +735,17 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 15, 5);
             x0 = (x - rx0) * Math.Cos(a) - (y - ry0) * Math.Sin(a) + rx0;
             y0 = (x - rx0) * Math.Sin(a) + (y - ry0) * Math.Cos(a) + ry0;
         }
-       
+
+        private void ReadCoor_Click(object sender, RoutedEventArgs e)
+        {
+            ReadCoorData();
+        }
+
+        private void WriteCoor_Click(object sender, RoutedEventArgs e)
+        {
+            WriteCoorData();
+        }
+
         /// <summary>
         /// 找横线
         /// </summary>
