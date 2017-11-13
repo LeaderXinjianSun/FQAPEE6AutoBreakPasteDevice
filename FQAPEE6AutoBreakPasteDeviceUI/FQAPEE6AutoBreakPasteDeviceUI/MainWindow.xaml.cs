@@ -468,6 +468,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         ScanCMD = PLC_In[0];
                         if (ScanCMD)
                         {
+                            PLC_In[0] = false;
                             await Task.Delay(200);
                             aS300ModbusTCP.WriteSigleCoil("M5100",true);
                         }
@@ -477,6 +478,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         USBCameraCMD = PLC_In[1];
                         if (USBCameraCMD)
                         {
+                            USBCameraCMD = false;
                             ImgSnap();
                             if (Window2Init)
                             {
@@ -484,6 +486,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                             }
                             
                             aS300ModbusTCP.WriteSigleCoil("M5102", true);
+                            await Task.Delay(100);
+
                         }
                     }
                     if (GigECMD != PLC_In[2])
@@ -491,9 +495,12 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         GigECMD = PLC_In[2];
                         if (GigECMD)
                         {
+                            GigECMD = false;
+                            
                             dispatcherTimer.Stop();
                             grapAction();
                             aS300ModbusTCP.WriteSigleCoil("M5140", true);
+                            await Task.Delay(100);
                         }
                     }
                     //throw new Exception(PLC_In[0].ToString());
