@@ -24,6 +24,7 @@ using System.Drawing;
 using OfficeOpenXml;
 using Microsoft.Win32;
 using System.Windows.Forms;
+using System.IO.Ports;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -41,12 +42,12 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HDrawingObject.HDrawingObjectCallback cb;
         HObject ho_EdgeAmplitude;
         HObject background_image = null;
-        HObject background_image2 = null;
+        //HObject background_image2 = null;
         object image_lock = new object();
         private HImage image;
         private HRegion Rectangle, ModelRegion;
         HWindow Window = null;
-        HWindow Window2 = null;
+        //HWindow Window2 = null;
         private HShapeModel ShapeModel;
         private double Row, Column;
         DataAxisCoor CoorPar = new DataAxisCoor();
@@ -54,18 +55,22 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HTuple RowCheck, ColumnCheck, AngleCheck, ScaleCheck, Score;
         HTuple homMat2D;
         Bitmap ImgBitmap;
-        bool Window2Init = false;
+        MySQLClass mySQLClass;
+        int CX;
+        //bool Window2Init = false;
+        double Line1Angle, Line1Dist, Line2Angle, Line2Dist;
 
         object modbustcp = new object();
         bool[] PLC_In;
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
+        Double[] CrossPoint;
 
-        delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
-        public class DeviceLostEventArgs : RoutedEventArgs
-        {
-            public DeviceLostEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent, source) { }
+        //delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
+        //public class DeviceLostEventArgs : RoutedEventArgs
+        //{
+        //    public DeviceLostEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent, source) { }
 
-        }
+        //}
 
         private void ICImagingControl_DeviceLost(object sender, TIS.Imaging.ICImagingControl.DeviceLostEventArgs e)
         {
@@ -80,11 +85,31 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             InitializeComponent();
             hdev_export = new HDevelopExport();
             drawing_objects = new List<HTuple>();
-            iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
-            Init();
-            
-        }
+            mySQLClass = new MySQLClass();
+            mySQLClass.test();
+            //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
 
+
+        }
+        private void ComboBox_DropDownOpened(object sender, EventArgs e)
+        {
+            var validComNames = SerialPort.GetPortNames();
+            foreach (var comName in validComNames)
+            {
+                if (!Com.Items.Contains(comName))
+                    Com.Items.Add(comName);
+            }
+            List<string> toRemove = new List<string>();
+            foreach (string addedName in Com.Items)
+            {
+                if (!validComNames.Contains(addedName))
+                    toRemove.Add(addedName);
+            }
+            foreach (string remove in toRemove)
+            {
+                Com.Items.Remove(remove);
+            }
+        }
         private void GrapButton_Click(object sender, RoutedEventArgs e)
         {
             dispatcherTimer.Stop();
@@ -94,9 +119,28 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         {
             OnClearAllObjects();
             hdev_export.GrapCamera();
-            image.Dispose();
+            if (image != null)
+            {
+                image.Dispose();
+            }
+            
             image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
+            
+        }
+        private void grapAction1()
+        {
+            OnClearAllObjects();
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+            if (image != null)
+            {
+                image.Dispose();
+            }
+
+            image = new HImage(hdev_export.ho_Image);
+            hSmartWindowControlWPF1.HalconWindow.DispObj(image);
+
         }
         private void OnClearAllObjects()
         {
@@ -215,98 +259,92 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             Action();
             if (RowCheck.Length == 1)
             {
-                if (Score.D >= 0.9)
-                {
-                    double shuxian_x, shuxian_y;
-                    RolConvert(CoorPar.ShuXiam.row, CoorPar.ShuXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out shuxian_x, out shuxian_y);
-                    shuxian_x += RowCheck.D - CoorPar.MoBan.row;
-                    shuxian_y += ColumnCheck.D - CoorPar.MoBan.column;
-                    HObject Rec1;
-                    HOperatorSet.GenRectangle2(out Rec1, shuxian_x, shuxian_y, CoorPar.ShuXiam.phi + AngleCheck.D, CoorPar.ShuXiam.length1, CoorPar.ShuXiam.length2);
-                    HRegion Rec1Region = new HRegion(Rec1);
-                    
-
-                    double hengxian_x, hengxian_y;
-                    RolConvert(CoorPar.HengXiam.row, CoorPar.HengXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out hengxian_x, out hengxian_y);
-                    hengxian_x += RowCheck.D - CoorPar.MoBan.row;
-                    hengxian_y += ColumnCheck.D - CoorPar.MoBan.column;
-                    HObject Rec2;
-                    HOperatorSet.GenRectangle2(out Rec2, hengxian_x, hengxian_y, CoorPar.HengXiam.phi + AngleCheck.D, CoorPar.HengXiam.length1, CoorPar.HengXiam.length2);
-                    HRegion Rec2Region = new HRegion(Rec2);
-
-                    Window.SetColor("red");
-                    Window.SetDraw("fill");
-
-                    HImage ImgReduced = image.ReduceDomain(Rec1Region);
-                    HObject EdgeAmplitude, EdgeDirection;
-                    HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
-                    HObject region1;
-                    HOperatorSet.Threshold(EdgeAmplitude, out region1, 10, 20);
-                    //region1.DispObj(Window);
-                    HTuple angle, dist;
-                    HOperatorSet.HoughLines(region1, 8, 400, 30, 30, out angle, out dist);
-                    HObject LinesHNF;
-                    if (dist.Length > 0)
-                    {
-                        HOperatorSet.GenRegionHline(out LinesHNF, angle, dist);
-                        LinesHNF.DispObj(Window);
-                    }
-
-                    ImgReduced = image.ReduceDomain(Rec2Region);
-                    HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
-                    HOperatorSet.Threshold(EdgeAmplitude, out region1, 50, 255);
-                    //region1.DispObj(Window);
-                    HOperatorSet.HoughLines(region1, 8, 300, 30, 30, out angle, out dist);
-                    HObject LinesHNF1;
-                    
-                    if (dist.Length > 0)
-                    {
-                        HOperatorSet.GenRegionHline(out LinesHNF1, angle, dist);
-                        LinesHNF1.DispObj(Window);
-                    }
+                CoorPar.Row1 = RowCheck.D;
+                CoorPar.DRow1 = CX;
+                MsgTextBox.Text = AddMessage("CX1: " + CoorPar.Row1.ToString() + "; " + CoorPar.DRow1.ToString());
+            }
+        }
+        private bool FindLines()
+        {
+            double shuxian_x, shuxian_y;
+            RolConvert(CoorPar.ShuXiam.row, CoorPar.ShuXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out shuxian_x, out shuxian_y);
+            shuxian_x += RowCheck.D - CoorPar.MoBan.row;
+            shuxian_y += ColumnCheck.D - CoorPar.MoBan.column;
+            HObject Rec1;
+            HOperatorSet.GenRectangle2(out Rec1, shuxian_x, shuxian_y, CoorPar.ShuXiam.phi + AngleCheck.D, CoorPar.ShuXiam.length1, CoorPar.ShuXiam.length2);
+            HRegion Rec1Region = new HRegion(Rec1);
 
 
-                    
-                    MsgTextBox.Text = AddMessage("查找模板完成");
-                }
-                else
-                {
-                    MsgTextBox.Text = AddMessage("模板质量低");
-                }
-                //DataAxisCoor.MRectangle2 rec2 = new DataAxisCoor.MRectangle2();
-                //rec2.row = RowCheck.DArr[0];
-                //rec2.column = ColumnCheck.DArr[0];
-                //rec2.phi = AngleCheck.DArr[0];
-                //rec2.length1 = 0;
-                //rec2.length2 = 0;
-                //CoorPar.MoBan = rec2;
-                //FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
-                //BinaryFormatter b = new BinaryFormatter();
-                //b.Serialize(fileStream, CoorPar);
-                //fileStream.Close();
+            double hengxian_x, hengxian_y;
+            RolConvert(CoorPar.HengXiam.row, CoorPar.HengXiam.column, CoorPar.MoBan.row, CoorPar.MoBan.column, AngleCheck.D, out hengxian_x, out hengxian_y);
+            hengxian_x += RowCheck.D - CoorPar.MoBan.row;
+            hengxian_y += ColumnCheck.D - CoorPar.MoBan.column;
+            HObject Rec2;
+            HOperatorSet.GenRectangle2(out Rec2, hengxian_x, hengxian_y, CoorPar.HengXiam.phi + AngleCheck.D, CoorPar.HengXiam.length1, CoorPar.HengXiam.length2);
+            HRegion Rec2Region = new HRegion(Rec2);
+
+            Window.SetColor("red");
+            Window.SetDraw("fill");
+
+            HImage ImgReduced = image.ReduceDomain(Rec1Region);
+            HObject EdgeAmplitude, EdgeDirection;
+            HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+            HObject region1;
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, 34, 255);
+            region1.DispObj(Window);
+            HTuple angle, dist;
+            HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+            HObject LinesHNF;
+            if (dist.Length > 0)
+            {
+                HOperatorSet.GenRegionHline(out LinesHNF, angle, dist);
+                LinesHNF.DispObj(Window);
+                Line1Angle = angle.DArr[0];
+                Line1Dist = dist.DArr[0];
             }
             else
             {
-                MsgTextBox.Text = AddMessage("未找到模板");
+                return false;
             }
 
+            ImgReduced = image.ReduceDomain(Rec2Region);
+            HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, 29, 255);
+            region1.DispObj(Window);
+            HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+            HObject LinesHNF1;
 
+            if (dist.Length > 0)
+            {
+                HOperatorSet.GenRegionHline(out LinesHNF1, angle, dist);
 
-
-
-
-
-
-
-
-
-
-
+                LinesHNF1.DispObj(Window);
+                Line2Angle = angle.DArr[0];
+                Line2Dist = dist.DArr[0];
+            }
+            else
+            {
+                return false;
+            }
+            CrossPoint = GetCrostPoint(Line1Angle, Line1Dist, Line2Angle, Line2Dist);
+            //MsgTextBox.Text = AddMessage(CrossPoint[0].ToString() + ","+ CrossPoint[1].ToString());
+            Window.SetColor("green");
+            Window.SetDraw("fill");
+            Window.DispCross(CrossPoint[1], CrossPoint[0], 60, 0);
+            return true;
         }
-
         private void CalcButton_Click(object sender, RoutedEventArgs e)
         {
-            dispatcherTimer.Stop();
+            if (CoorPar.DRow1 != CoorPar.DRow2)
+            {
+
+                CoorPar.Calc();
+                MsgTextBox.Text = AddMessage("像素计算完成: " + CoorPar.DisT.ToString());
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("点1、点2重合，无法计算");
+            }
         }
         struct DWORDStruct
         {
@@ -396,7 +434,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             }
             else
             {
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 200; i++)
                 {
                     await Task.Delay(10);
                     DWORDStruct dw = new DWORDStruct();
@@ -452,6 +490,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         private async void PLCRun()
         {
             bool ScanCMD = false,USBCameraCMD = false,GigECMD = false;
+            int max = 0, min = 0;
             while (true)
             {
                 await Task.Delay(200);
@@ -460,7 +499,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                     lock (modbustcp)
                     {
                         PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
-                        TextX1.Text = aS300ModbusTCP.ReadDWORD("D6").ToString();
+                        CX = aS300ModbusTCP.ReadDWORD("D6");
+                        TextX1.Text = ((double)CX / 100).ToString();
                         //aS300ModbusTCP.WriteDWORD("D2", -99999999);
                     }
                     if (ScanCMD != PLC_In[0])
@@ -470,26 +510,32 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         {
                             PLC_In[0] = false;
                             await Task.Delay(200);
-                            aS300ModbusTCP.WriteSigleCoil("M5100",true);
-                        }
-                    }
-                    if (USBCameraCMD != PLC_In[1])
-                    {
-                        USBCameraCMD = PLC_In[1];
-                        if (USBCameraCMD)
-                        {
-                            USBCameraCMD = false;
-                            ImgSnap();
-                            if (Window2Init)
+                            lock (modbustcp)
                             {
-                                HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                                aS300ModbusTCP.WriteSigleCoil("M5100", true);
                             }
-                            
-                            aS300ModbusTCP.WriteSigleCoil("M5102", true);
-                            await Task.Delay(100);
-
                         }
                     }
+                    //if (USBCameraCMD != PLC_In[1])
+                    //{
+                    //    USBCameraCMD = PLC_In[1];
+                    //    if (USBCameraCMD)
+                    //    {
+                    //        USBCameraCMD = false;
+                    //        ImgSnap();
+                    //        if (Window2Init)
+                    //        {
+                    //            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                    //        }
+                            
+                    //        lock (modbustcp)
+                    //        {
+                    //            aS300ModbusTCP.WriteSigleCoil("M5102", true);
+                    //        }
+                    //        await Task.Delay(100);
+
+                    //    }
+                    //}
                     if (GigECMD != PLC_In[2])
                     {
                         GigECMD = PLC_In[2];
@@ -499,8 +545,97 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                             
                             dispatcherTimer.Stop();
                             grapAction();
-                            aS300ModbusTCP.WriteSigleCoil("M5140", true);
-                            await Task.Delay(100);
+                            //hdev_export.SaveImage();
+                            Action();
+                            if (RowCheck.Length == 1)
+                            {
+                                if (FindLines())
+                                {
+                                    
+                                    int DD12, DD14, DD16;
+                                    DD12 = (int)((CrossPoint[1] - CoorPar.Y0) * -1 / CoorPar.DisT);
+                                    DD14 = (int)(((CrossPoint[0] - CoorPar.X0) * -1) / CoorPar.DisT);
+                                    //DD16 = Convert.ToInt32(((CoorPar.Line1Angle + CoorPar.Line2Angle - Line1Angle - Line2Angle) / 2 / Math.PI * 180) * 100);
+                                    if (AngleCheck.D > Math.PI)
+                                    {
+                                        DD16 = Convert.ToInt32(((AngleCheck.D - 2 * Math.PI) / Math.PI * 180) * 100);
+
+                                        //MsgTextBox.Text = AddMessage(( - Line1Angle + CoorPar.Line1Angle).ToString() + "," + (Line2Angle - CoorPar.Line2Angle).ToString() +"," + (AngleCheck.D - 2 * Math.PI).ToString());
+                                    }
+                                    else
+                                    {
+                                        DD16 = Convert.ToInt32((AngleCheck.D / Math.PI * 180) * 100);
+                                        //MsgTextBox.Text = AddMessage(( - Line1Angle + CoorPar.Line1Angle).ToString() + "," + (Line2Angle - CoorPar.Line2Angle).ToString() + "," + AngleCheck.D .ToString());
+                                    }
+                                    if (DD12 > 1000 || DD12 < -1000 || DD14 > 1000 || DD14 < -1000)
+                                    {
+                                        lock (modbustcp)
+                                        {
+                                            aS300ModbusTCP.WriteDWORD("D12", 0);
+                                            aS300ModbusTCP.WriteDWORD("D14", 0);
+                                            aS300ModbusTCP.WriteDWORD("D16", 0);
+                                            MsgTextBox.Text = AddMessage("数值异常");
+                                            aS300ModbusTCP.WriteSigleCoil("M5143", true);
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        lock (modbustcp)
+                                        {
+                                            aS300ModbusTCP.WriteDWORD("D12", DD12);
+                                            aS300ModbusTCP.WriteDWORD("D14", DD14);
+                                            aS300ModbusTCP.WriteDWORD("D16", DD16);
+                                            if (max < DD12)
+                                            {
+                                                max = DD12;
+                                            }
+                                            if (min > DD12)
+                                            {
+                                                min = DD12;
+                                            }
+                                            TextMaxX1.Text = max.ToString();
+                                            TextMinX1.Text = min.ToString();
+                                            MsgTextBox.Text = AddMessage("X:" + DD12.ToString() + ",Y:" + DD14.ToString() + ",U:" + DD16.ToString());
+                                            aS300ModbusTCP.WriteSigleCoil("M5140", true);
+                                        }
+
+                                    }
+                                    
+
+                                }
+                                else
+                                {
+
+                                    lock (modbustcp)
+                                    {
+                                        aS300ModbusTCP.WriteDWORD("D12", 0);
+                                        aS300ModbusTCP.WriteDWORD("D14", 0);
+                                        aS300ModbusTCP.WriteDWORD("D16", 0);
+                                        MsgTextBox.Text = AddMessage("直线未找到");
+                                        hdev_export.SaveImage();
+                                        aS300ModbusTCP.WriteSigleCoil("M5143", true);
+                                    }
+                                }
+                                
+                            }
+                            else
+                            {
+                                lock (modbustcp)
+                                {
+                                    aS300ModbusTCP.WriteDWORD("D12", 0);
+                                    aS300ModbusTCP.WriteDWORD("D14", 0);
+                                    aS300ModbusTCP.WriteDWORD("D16", 0);
+                                    MsgTextBox.Text = AddMessage("未找到模板");
+                                    hdev_export.SaveImage();
+                                    aS300ModbusTCP.WriteSigleCoil("M5143", true);
+                                }
+
+                            }
+                            
+                            
+
+                            //await Task.Delay(100);
                         }
                     }
                     //throw new Exception(PLC_In[0].ToString());
@@ -517,15 +652,33 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         {
             dispatcherTimer.Start();
         }
-
+        private double[] GetCrostPoint(double Angle1, double Dist1, double Angle2, double Dist2)
+        {
+            double[] xy0 = new double[2]; 
+            double a1 = Math.Tan(Angle1 - Math.PI / 2);
+            double b1 = Dist1 / Math.Sin(Angle1);
+            double a2 = Math.Tan(Angle2 - Math.PI / 2);
+            double b2 = Dist2 / Math.Sin(Angle2);
+            xy0[0] = (b2 - b1) / (a1 - a2);
+            xy0[1] = a1 * xy0[0] + b1;
+            return xy0;
+        }
+        public void PrintBarcode(string str)
+        {
+            MsgTextBox.Text = AddMessage(str);
+            BarcodeString.Text = str;
+        }
         void Init()
         {
-            hdev_export.OpenCamera();
 
+            
+            hdev_export.OpenCamera();
+            MsgTextBox.Text = AddMessage("相机开启");
             FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Open, FileAccess.Read, FileShare.Read);
             BinaryFormatter b = new BinaryFormatter();
             CoorPar = b.Deserialize(fileStream) as DataAxisCoor;
             fileStream.Close();
+
             //GethomMat2D();
 
             //CalcRolCenter();
@@ -551,7 +704,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             //        0.4, 1, 0.5, "least_squares",
             //        4, 0.9, out RowCheck, out ColumnCheck,
             //        out AngleCheck, out ScaleCheck, out Score);
-            ShapeModel.FindShapeModel(image, 0,
+            HObject Rec1;
+            HOperatorSet.GenRectangle1(out Rec1,50,300,1700,1400);
+            HRegion Region1 = new HRegion(Rec1);
+            HImage imgreduced = image.ReduceDomain(Region1);
+            ShapeModel.FindShapeModel(imgreduced, 0,
                     new HTuple(360).TupleRad().D, 0.5, 1,
                     0.4, "least_squares",
                     4, 0.9, out RowCheck, out ColumnCheck,
@@ -577,56 +734,63 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         }
         private void Calib2Button_Click(object sender, RoutedEventArgs e)
         {
-
+            grapAction();
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                CoorPar.Row2 = RowCheck.D;
+                CoorPar.DRow2 = CX;
+                MsgTextBox.Text = AddMessage("CX2: " + CoorPar.Row2.ToString() + "; " + CoorPar.DRow2.ToString());
+            }
         }
 
-        private void ImgLive_Click(object sender, RoutedEventArgs e)
-        {
+        //private void ImgLive_Click(object sender, RoutedEventArgs e)
+        //{
             
-            if (iCImagingControl.DeviceValid)
-            {
-                ImgLive.IsEnabled = false;
-                ImgStop.IsEnabled = true;
-                iCImagingControl.LiveStart();
-            }
-        }
+        //    if (iCImagingControl.DeviceValid)
+        //    {
+        //        ImgLive.IsEnabled = false;
+        //        ImgStop.IsEnabled = true;
+        //        iCImagingControl.LiveStart();
+        //    }
+        //}
 
-        private void ImgStop_Click(object sender, RoutedEventArgs e)
-        {
-            if (iCImagingControl.DeviceValid)
-            {
-                iCImagingControl.LiveStop();
-                ImgLive.IsEnabled = true;
-                ImgStop.IsEnabled = false;
-            }
-        }
-        private void ImgSnap()
-        {
-            if (iCImagingControl.DeviceValid)
-            {
-                if (iCImagingControl.LiveVideoRunning)
-                {
-                    iCImagingControl.LiveStop();
-                    ImgLive.IsEnabled = true;
-                    ImgStop.IsEnabled = false;
-                }
-                iCImagingControl.MemorySnapImage();
-                if (ImgBitmap != null)
-                {
-                    ImgBitmap.Dispose();
-                }
-                ImgBitmap = new Bitmap(iCImagingControl.ImageActiveBuffer.Bitmap);
-            }
-        }
+        //private void ImgStop_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (iCImagingControl.DeviceValid)
+        //    {
+        //        iCImagingControl.LiveStop();
+        //        ImgLive.IsEnabled = true;
+        //        ImgStop.IsEnabled = false;
+        //    }
+        //}
+        //private void ImgSnap()
+        //{
+        //    if (iCImagingControl.DeviceValid)
+        //    {
+        //        if (iCImagingControl.LiveVideoRunning)
+        //        {
+        //            iCImagingControl.LiveStop();
+        //            ImgLive.IsEnabled = true;
+        //            ImgStop.IsEnabled = false;
+        //        }
+        //        iCImagingControl.MemorySnapImage();
+        //        if (ImgBitmap != null)
+        //        {
+        //            ImgBitmap.Dispose();
+        //        }
+        //        ImgBitmap = new Bitmap(iCImagingControl.ImageActiveBuffer.Bitmap);
+        //    }
+        //}
 
-        private void HWindowControlWPF2_HInitWindow(object sender, EventArgs e)
-        {
-            Window2 = HWindowControlWPF2.HalconWindow;
-            HWindowControlWPF2.HalconWindow.SetPart(0.0, 0.0, new HTuple(ImgBitmap.Height - 1), new HTuple(ImgBitmap.Width - 1));
-            HWindowControlWPF2.HalconWindow.AttachBackgroundToWindow(new HImage(BitmaptoHImage(ImgBitmap)));
-            Window2Init = true;
+        //private void HWindowControlWPF2_HInitWindow(object sender, EventArgs e)
+        //{
+        //    Window2 = HWindowControlWPF2.HalconWindow;
+        //    HWindowControlWPF2.HalconWindow.SetPart(0.0, 0.0, new HTuple(ImgBitmap.Height - 1), new HTuple(ImgBitmap.Width - 1));
+        //    HWindowControlWPF2.HalconWindow.AttachBackgroundToWindow(new HImage(BitmaptoHImage(ImgBitmap)));
+        //    Window2Init = true;
 
-        }
+        //}
         private HObject BitmaptoHImage(Bitmap bmp)
         {
             HObject ho_Image;
@@ -640,11 +804,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             return ho_Image;
         }
 
-        private void USBCameraAction_Click(object sender, RoutedEventArgs e)
-        {
-            ImgSnap();
-            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
-        }
+        //private void USBCameraAction_Click(object sender, RoutedEventArgs e)
+        //{
+        //    ImgSnap();
+        //    HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+        //}
         /// <summary>
         /// 找竖线
         /// </summary>
@@ -654,7 +818,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         {
             HTuple draw_id;
 
-            hdev_export.GrapCamera();
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
             background_image = hdev_export.ho_Image;
             hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
             hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
@@ -713,7 +878,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             {
                 MsgTextBox.Text = AddMessage("横线区域不存在");
             }
-            grapAction();
+            grapAction1();
             Action();
             if (RowCheck.Length == 1)
             {
@@ -724,6 +889,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 rec2.length1 = 0;
                 rec2.length2 = 0;
                 CoorPar.MoBan = rec2;
+
                 FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
                 BinaryFormatter b = new BinaryFormatter();
                 b.Serialize(fileStream, CoorPar);
@@ -748,9 +914,88 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             ReadCoorData();
         }
 
+        private void FunctionTest_Click(object sender, RoutedEventArgs e)
+        {
+            grapAction1();
+            Action();
+            if (RowCheck.Length > 0)
+            {
+                if (FindLines())
+                {
+                    CoorPar.Line1Angle = Line1Angle;
+                    CoorPar.Line1Dist = Line1Dist;
+                    CoorPar.Line2Angle = Line2Angle;
+                    CoorPar.Line2Dist = Line2Dist;
+                    CoorPar.X0 = CrossPoint[0];
+                    CoorPar.Y0 = CrossPoint[1];
+                    MsgTextBox.Text = AddMessage("直线保存成功");
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("找直线失败");
+                }
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("未找到模板");
+            }
+           
+        }
+
+        private void Com_DropDownClosed(object sender, EventArgs e)
+        {
+            CoorPar.ScanCom = Com.Text;
+        }
+
+        private void FunctionButton_Click(object sender, RoutedEventArgs e)
+        {
+            Scan.GetBarCode(PrintBarcode);
+        }
+
         private void WriteCoor_Click(object sender, RoutedEventArgs e)
         {
             WriteCoorData();
+        }
+
+        private void FindModelButton_Click(object sender, RoutedEventArgs e)
+        {
+            grapAction();
+            Action();
+        }
+
+        private void FindLineButton_Click(object sender, RoutedEventArgs e)
+        {
+            grapAction();
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                if (Score.D >= 0.7)
+                {
+
+
+                    FindLines();
+                    MsgTextBox.Text = AddMessage("查找模板完成");
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("模板质量低");
+                }
+
+            }
+            else
+            {
+                MsgTextBox.Text = AddMessage("未找到模板");
+            }
+
+
+
+
+
+
+
+
+
+
         }
 
         /// <summary>
@@ -762,7 +1007,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         {
             HTuple draw_id;
 
-            hdev_export.GrapCamera();
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
             background_image = hdev_export.ho_Image;
             hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
             hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
@@ -771,7 +1017,14 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            hdev_export.GrapCamera();
+            
+            Init();
+            Com.Text = CoorPar.ScanCom;
+            Scan.ini(CoorPar.ScanCom);
+            Scan.Connect();
+            MsgTextBox.Text = AddMessage("扫码枪连接");
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
             image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
             dispatcherTimer.Tick += new EventHandler(GrapContinue);
@@ -788,34 +1041,34 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 MsgTextBox.Text = AddMessage(ex.Message);
             }
 
+            
+            //try
+            //{
+            //    iCImagingControl.LoadDeviceStateFromFile("device.xml", true);
+            //}
+            //catch (Exception ex)
+            //{
 
-            try
-            {
-                iCImagingControl.LoadDeviceStateFromFile("device.xml", true);
-            }
-            catch (Exception ex)
-            {
+            //    MsgTextBox.Text = AddMessage(ex.Message);
+            //}
 
-                MsgTextBox.Text = AddMessage(ex.Message);
-            }
+            //if (!iCImagingControl.DeviceValid)
+            //{
+            //    iCImagingControl.ShowDeviceSettingsDialog();
+            //}
+            ////imageViewer.viewController.repaint();
 
-            if (!iCImagingControl.DeviceValid)
-            {
-                iCImagingControl.ShowDeviceSettingsDialog();
-            }
-            //imageViewer.viewController.repaint();
-
-            if (iCImagingControl.DeviceValid)
-            {
-                iCImagingControl.SaveDeviceStateToFile("device.xml");
-                iCImagingControl.Size = new System.Drawing.Size(600, 400);
-                iCImagingControl.LiveDisplayDefault = false;
-                iCImagingControl.LiveDisplayHeight = iCImagingControl.Height;
-                iCImagingControl.LiveDisplayWidth = iCImagingControl.Width;
-                ImgSnap();
-                //SmartWindowControlWPF2Init();
-            }
-            ImgStop.IsEnabled = false;
+            //if (iCImagingControl.DeviceValid)
+            //{
+            //    iCImagingControl.SaveDeviceStateToFile("device.xml");
+            //    iCImagingControl.Size = new System.Drawing.Size(600, 400);
+            //    iCImagingControl.LiveDisplayDefault = false;
+            //    iCImagingControl.LiveDisplayHeight = iCImagingControl.Height;
+            //    iCImagingControl.LiveDisplayWidth = iCImagingControl.Width;
+            //    ImgSnap();
+            //    //SmartWindowControlWPF2Init();
+            //}
+            //ImgStop.IsEnabled = false;
         }
         private void GrapContinue(Object sender, EventArgs e)
         {
@@ -838,7 +1091,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             {
                 MessageStr = "";
             }
-            MessageStr += "\n" + System.DateTime.Now.ToString() + " " + str;
+            //MessageStr += "\n" + System.DateTime.Now.ToString() + " " + str;
+            MessageStr += "\n" + " " + str;
             return MessageStr;
         }
         protected void DisplayCallback(IntPtr draw_id, IntPtr window_handle, string type)
@@ -856,7 +1110,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             HTuple width, height;
             Window = hSmartWindowControlWPF1.HalconWindow;
             hdev_export.hv_ExpDefaultWinHandle = hSmartWindowControlWPF1.HalconID;
-            hdev_export.GrapCamera();
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
             background_image = hdev_export.ho_Image;
             HOperatorSet.GetImageSize(background_image, out width, out height);
             hSmartWindowControlWPF1.HalconWindow.SetPart(0.0, 0.0, height - 1, width - 1);
@@ -887,6 +1142,22 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         public MRectangle2 ShuXiam;
         public MRectangle2 HengXiam;
         public MRectangle2 MoBan;
+        public double Row1;
+        public double Row2;
+        public int DRow1;
+        public int DRow2;
+        public double DisT;
+        public double Line1Angle;
+        public double Line1Dist;
+        public double Line2Angle;
+        public double Line2Dist;
+        public double X0;
+        public double Y0;
+        public string ScanCom;
+        public void Calc()
+        {
+            DisT = (Row1 - Row2) / (DRow1 - DRow2);
+        }
     }
 
 }

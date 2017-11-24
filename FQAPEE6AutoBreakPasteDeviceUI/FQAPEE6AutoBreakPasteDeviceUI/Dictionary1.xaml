@@ -13,6 +13,12 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
+    <Style TargetType="ComboBox" x:Key="ComboBoxBase">
+        <Setter Property="Width" Value="80"></Setter>
+        <Setter Property="Height" Value="30"></Setter>
+        <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+        <Setter Property="Margin" Value="5,2,0,2"></Setter>
+    </Style>
     <Style TargetType="Ellipse" BasedOn="{StaticResource EllipseStatusBase}" x:Key="DBConnectStatus">
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsTCPConnect}" Value="true">

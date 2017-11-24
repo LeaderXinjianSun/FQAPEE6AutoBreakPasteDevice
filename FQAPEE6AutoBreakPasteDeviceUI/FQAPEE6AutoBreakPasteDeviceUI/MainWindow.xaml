@@ -53,6 +53,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="创建模板" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="创建直线" Click="CreateButton_Click1" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="模板直线" Click="FunctionTest_Click" Style="{StaticResource ButtonBase}"></Button>
                                 </StackPanel>
                             </StackPanel>
                             
@@ -60,11 +61,12 @@
                         <TabItem Header="标定">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Content="调整" Click="AdjustButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="找模板" Click="FindModelButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="找直线" Click="FindLineButton_Click" Style="{StaticResource ButtonBase}"></Button>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Content="标定1" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
-                                    <Button Content="标定2" Click="Calib2Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="点1" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    <Button Content="点2" Click="Calib2Button_Click" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="计算" Click="CalcButton_Click" Style="{StaticResource ButtonBase}"></Button>
                                 </StackPanel>
                             </StackPanel>
@@ -75,8 +77,14 @@
                                     <Button Content="读" Name="ReadCoor" ToolTip="从PLC读取数据到文件" Click="ReadCoor_Click" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="写" Name="WriteCoor" ToolTip="从文件加载数据到PLC" Click="WriteCoor_Click" Style="{StaticResource ButtonBase}"></Button>
                                 </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center" Style="{StaticResource TextBlockBase}" Text=" 扫码枪 "></TextBlock>
+                                    <ComboBox VerticalContentAlignment="Center" Style="{StaticResource ComboBoxBase}" x:Name="Com" DropDownOpened="ComboBox_DropDownOpened" DropDownClosed="Com_DropDownClosed" IsEditable="True" IsReadOnly="True"></ComboBox>
+                                    
+                                </StackPanel>
                             </StackPanel>
                         </TabItem>
+
                     </TabControl>
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -99,12 +107,34 @@
                             <TextBlock Text="贴胶轴: "></TextBlock>
                             <TextBlock Name="TextX1"></TextBlock>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                            <TextBlock Name="TextMaxX1"></TextBlock>
+                            <TextBlock Name="TextMinX1"></TextBlock>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 
             </Grid>
         </TabItem>
         <TabItem Header="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="6*"></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="1" Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Style="{StaticResource TextBoxPath}" Height="30" Name="BarcodeString"></TextBox>
+                        <Button Style="{StaticResource ButtonBase}" Name="FunctionButton" Content="扫码" Click="FunctionButton_Click"></Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </TabItem>
+        <!--<TabItem Header="2">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"></RowDefinition>
@@ -131,7 +161,7 @@
                     </StackPanel>
                 </StackPanel>
             </Grid>
-        </TabItem>
+        </TabItem>-->
     </TabControl>
 
 </metro:MetroWindow>

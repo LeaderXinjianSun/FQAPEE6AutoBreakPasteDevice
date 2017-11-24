@@ -7,16 +7,17 @@
 <c as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2]" as_ord="1">* Image Acquisition 01: Attention: The initialization may fail in case parameters need to</c>
 <c as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2]" as_ord="2">* Image Acquisition 01: be set in a specific order (e.g., image resolution vs. offset).</c>
 <l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2,1]" as_ord="1">open_framegrabber ('GigEVision', 0, 0, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', 'BottomCamera', 0, -1, AcqHandle)</l>
-<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2,2]" as_ord="2">set_framegrabber_param (AcqHandle, 'ExposureTime', 850.0)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2,2]" as_ord="2">set_framegrabber_param (AcqHandle, 'ExposureTime', 650.0)</l>
 <l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,3]" as_ord="1">grab_image (Image, AcqHandle)</l>
+<l>* gen_rectangle1 (Rectangle, 490, 564, 1171, 1182)</l>
 <c as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,4]" as_ord="1">* Image Acquisition 01: Do something</c>
 <l>draw_rectangle1 (200000, Row1, Column1, Row2, Column2)</l>
 <l>rectangle1_domain (Image, ImageReduced, Row1, Column1, Row2, Column2)</l>
 <l>sobel_dir (ImageReduced, EdgeAmplitude, EdgeDirection, 'sum_abs', 3)</l>
-<l>threshold (EdgeAmplitude, Region, 10, 20)</l>
+<l>threshold (EdgeAmplitude, Region, 27, 255)</l>
 <l>*reduce_domain (EdgeDirection, Region, EdgeDirectionReduced)</l>
 <l>*hough_lines_dir (EdgeDirectionReduced, HoughImage, Lines, 4, 2, 'mean', 3, 25, 5, 5, 'true', Angle, Dist)</l>
-<l>hough_lines (Region, 8, 400, 30, 30, Angle, Dist)</l>
+<l>hough_lines (Region, 8, 380, 30, 30, Angle, Dist)</l>
 <l>gen_region_hline (LinesHNF, Angle, Dist)</l>
 <l>dev_display (LinesHNF)</l>
 <l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[4,1]" as_ord="1">close_framegrabber (AcqHandle)</l>
