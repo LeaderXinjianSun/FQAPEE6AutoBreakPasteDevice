@@ -54,9 +54,29 @@ public partial class HDevelopExport
                 ho_Image.Dispose();
             }
             HOperatorSet.GrabImage(out ho_Image, hv_AcqHandle);
+            //HOperatorSet.WriteImage(ho_Image, "tiff", 0, "d:/image/"+ DateTime.Now.ToString("yyyyMMdd") + DateTime.Now.ToString("HHmmss") + ".bmp");
+            
             return true;
         }
         catch
+        {
+
+            return false;
+        }
+    }
+    public void SaveImage()
+    {
+        HOperatorSet.WriteImage(ho_Image, "tiff", 0, "d:/image/" + DateTime.Now.ToString("yyyyMMdd") + DateTime.Now.ToString("HHmmss"));
+    }
+    public bool ReadImage(string filename)
+    {
+        //"D:/EE62017111002/FQAPEE6AutoBreakPasteDevice/FQAPEE6AutoBreakPasteDeviceUI/FQAPEE6AutoBreakPasteDeviceUI/bin/Debug/ModelImage.tiff"
+        try
+        {
+            HOperatorSet.ReadImage(out ho_Image, filename);
+            return true;
+        }
+        catch 
         {
 
             return false;
