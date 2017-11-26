@@ -56,7 +56,11 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HTuple homMat2D;
         Bitmap ImgBitmap;
         MySQLClass mySQLClass;
+<<<<<<< HEAD
         int CX, CY;
+=======
+        int CX;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         //bool Window2Init = false;
         double Line1Angle, Line1Dist, Line2Angle, Line2Dist;
 
@@ -64,8 +68,11 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         bool[] PLC_In;
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
         Double[] CrossPoint;
+<<<<<<< HEAD
         string[] ImageFiles;
         int ImageIndex;
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
 
         //delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
         //public class DeviceLostEventArgs : RoutedEventArgs
@@ -88,7 +95,11 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             hdev_export = new HDevelopExport();
             drawing_objects = new List<HTuple>();
             mySQLClass = new MySQLClass();
+<<<<<<< HEAD
             //mySQLClass.test();
+=======
+            mySQLClass.test();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
 
 
@@ -143,6 +154,7 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
 
+<<<<<<< HEAD
         }
         private void grapAction2()
         {
@@ -163,6 +175,8 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
 
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         }
         private void OnClearAllObjects()
         {
@@ -328,10 +342,17 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             HObject EdgeAmplitude, EdgeDirection;
             HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
             HObject region1;
+<<<<<<< HEAD
             HOperatorSet.Threshold(EdgeAmplitude, out region1, CoorPar.ShuXianThreshold, 255);
             region1.DispObj(Window);
             HTuple angle, dist;
             HOperatorSet.HoughLines(region1, 8, CoorPar.ShuXianPixNum, 30, 30, out angle, out dist);
+=======
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, 34, 255);
+            region1.DispObj(Window);
+            HTuple angle, dist;
+            HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             HObject LinesHNF;
             if (dist.Length > 0)
             {
@@ -347,9 +368,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
             ImgReduced = image.ReduceDomain(Rec2Region);
             HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+<<<<<<< HEAD
             HOperatorSet.Threshold(EdgeAmplitude, out region1, CoorPar.HengXianThreshold, 255);
             region1.DispObj(Window);
             HOperatorSet.HoughLines(region1, 8, CoorPar.HengXianPixNum, 30, 30, out angle, out dist);
+=======
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, 29, 255);
+            region1.DispObj(Window);
+            HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             HObject LinesHNF1;
 
             if (dist.Length > 0)
@@ -613,7 +640,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         }
         private async void PLCRun()
         {
+<<<<<<< HEAD
             bool ScanCMD = false, GigECMD = false;
+=======
+            bool ScanCMD = false,USBCameraCMD = false,GigECMD = false;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             int max = 0, min = 0;
             while (true)
             {
@@ -625,8 +656,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
                         CX = aS300ModbusTCP.ReadDWORD("D6");
                         TextX1.Text = ((double)CX / 100).ToString();
+<<<<<<< HEAD
                         CY = aS300ModbusTCP.ReadDWORD("D10");
                         TextY1.Text = ((double)CY / 100).ToString();
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                         //aS300ModbusTCP.WriteDWORD("D2", -99999999);
                     }
                     if (ScanCMD != PLC_In[0])
@@ -634,6 +668,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         ScanCMD = PLC_In[0];
                         if (ScanCMD)
                         {
+<<<<<<< HEAD
                             ScanCMD = false;
                             lock (modbustcp)
                             {
@@ -644,6 +679,36 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         }
                     }
                     
+=======
+                            PLC_In[0] = false;
+                            await Task.Delay(200);
+                            lock (modbustcp)
+                            {
+                                aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                            }
+                        }
+                    }
+                    //if (USBCameraCMD != PLC_In[1])
+                    //{
+                    //    USBCameraCMD = PLC_In[1];
+                    //    if (USBCameraCMD)
+                    //    {
+                    //        USBCameraCMD = false;
+                    //        ImgSnap();
+                    //        if (Window2Init)
+                    //        {
+                    //            HWindowControlWPF2.HalconWindow.DispObj(new HImage(BitmaptoHImage(ImgBitmap)));
+                    //        }
+                            
+                    //        lock (modbustcp)
+                    //        {
+                    //            aS300ModbusTCP.WriteSigleCoil("M5102", true);
+                    //        }
+                    //        await Task.Delay(100);
+
+                    //    }
+                    //}
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                     if (GigECMD != PLC_In[2])
                     {
                         GigECMD = PLC_In[2];
@@ -659,8 +724,12 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                             {
                                 if (FindLines())
                                 {
+<<<<<<< HEAD
                                     TextMaxX1.Text = CrossPoint[0].ToString("F2");
                                     TextMinX1.Text = CrossPoint[1].ToString("F2");
+=======
+                                    
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                     int DD12, DD14, DD16;
                                     DD12 = (int)((CrossPoint[1] - CoorPar.Y0) * -1 / CoorPar.DisT);
                                     DD14 = (int)(((CrossPoint[0] - CoorPar.X0) * -1) / CoorPar.DisT);
@@ -684,7 +753,10 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                                             aS300ModbusTCP.WriteDWORD("D14", 0);
                                             aS300ModbusTCP.WriteDWORD("D16", 0);
                                             MsgTextBox.Text = AddMessage("数值异常");
+<<<<<<< HEAD
                                             hdev_export.SaveImage();
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                             aS300ModbusTCP.WriteSigleCoil("M5143", true);
                                         }
 
@@ -696,8 +768,21 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                                             aS300ModbusTCP.WriteDWORD("D12", DD12);
                                             aS300ModbusTCP.WriteDWORD("D14", DD14);
                                             aS300ModbusTCP.WriteDWORD("D16", DD16);
+<<<<<<< HEAD
 
 
+=======
+                                            if (max < DD12)
+                                            {
+                                                max = DD12;
+                                            }
+                                            if (min > DD12)
+                                            {
+                                                min = DD12;
+                                            }
+                                            TextMaxX1.Text = max.ToString();
+                                            TextMinX1.Text = min.ToString();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                             MsgTextBox.Text = AddMessage("X:" + DD12.ToString() + ",Y:" + DD14.ToString() + ",U:" + DD16.ToString());
                                             aS300ModbusTCP.WriteSigleCoil("M5140", true);
                                         }
@@ -756,6 +841,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         }
         private double[] GetCrostPoint(double Angle1, double Dist1, double Angle2, double Dist2)
         {
+<<<<<<< HEAD
             double[] xy0 = new double[2];
             double a1, b1, a2, b2;
             a2 = Math.Tan(Angle2 - Math.PI / 2);
@@ -771,13 +857,27 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 xy0[0] = (b2 - b1) / (a1 - a2);
             }
             xy0[1] = a2 * xy0[0] + b2;
+=======
+            double[] xy0 = new double[2]; 
+            double a1 = Math.Tan(Angle1 - Math.PI / 2);
+            double b1 = Dist1 / Math.Sin(Angle1);
+            double a2 = Math.Tan(Angle2 - Math.PI / 2);
+            double b2 = Dist2 / Math.Sin(Angle2);
+            xy0[0] = (b2 - b1) / (a1 - a2);
+            xy0[1] = a1 * xy0[0] + b1;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             return xy0;
         }
         public void PrintBarcode(string str)
         {
+<<<<<<< HEAD
             string[] strs = str.Split('\r');
             MsgTextBox.Text = AddMessage(strs[0]);
             BarcodeString.Text = strs[0];
+=======
+            MsgTextBox.Text = AddMessage(str);
+            BarcodeString.Text = str;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         }
         void Init()
         {
@@ -1071,6 +1171,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             Scan.GetBarCode(PrintBarcode);
         }
 
+<<<<<<< HEAD
         private void ImageCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             ImageFiles = Directory.GetFiles(@"D:\image");
@@ -1123,6 +1224,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             }
         }
 
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         private void WriteCoor_Click(object sender, RoutedEventArgs e)
         {
             WriteCoorData();
@@ -1130,6 +1233,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
         private void FindModelButton_Click(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
             if ((bool)ImageCheckBox.IsChecked)
             {
                 grapAction2();
@@ -1139,11 +1243,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 grapAction();
             }
             
+=======
+            grapAction();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             Action();
         }
 
         private void FindLineButton_Click(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
             if ((bool)ImageCheckBox.IsChecked)
             {
                 grapAction2();
@@ -1172,6 +1280,23 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 //{
                 //    MsgTextBox.Text = AddMessage("模板质量低");
                 //}
+=======
+            grapAction();
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                if (Score.D >= 0.7)
+                {
+
+
+                    FindLines();
+                    MsgTextBox.Text = AddMessage("查找模板完成");
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("模板质量低");
+                }
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
 
             }
             else
@@ -1212,6 +1337,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             
             Init();
             Com.Text = CoorPar.ScanCom;
+<<<<<<< HEAD
             if (CoorPar.MuBanContrast != null)
             {
                 MuBanContrast.Text = CoorPar.MuBanContrast.D.ToString();
@@ -1232,6 +1358,8 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             {
                 HengXianThreshold.Text = CoorPar.HengXianThreshold.D.ToString();
             }
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             Scan.ini(CoorPar.ScanCom);
             Scan.Connect();
             MsgTextBox.Text = AddMessage("扫码枪连接");
@@ -1265,9 +1393,23 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             //catch (Exception ex)
             //{
 
+<<<<<<< HEAD
             //    MsgTextBox.Text = AddMessage(ex.Message);
             //}
 
+=======
+            
+            //try
+            //{
+            //    iCImagingControl.LoadDeviceStateFromFile("device.xml", true);
+            //}
+            //catch (Exception ex)
+            //{
+
+            //    MsgTextBox.Text = AddMessage(ex.Message);
+            //}
+
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             //if (!iCImagingControl.DeviceValid)
             //{
             //    iCImagingControl.ShowDeviceSettingsDialog();
@@ -1370,11 +1512,14 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         public double X0;
         public double Y0;
         public string ScanCom;
+<<<<<<< HEAD
         public HTuple ShuXianThreshold;
         public HTuple ShuXianPixNum;
         public HTuple HengXianThreshold;
         public HTuple HengXianPixNum;
         public HTuple MuBanContrast;
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         public void Calc()
         {
             DisT = (Row1 - Row2) / (DRow1 - DRow2);

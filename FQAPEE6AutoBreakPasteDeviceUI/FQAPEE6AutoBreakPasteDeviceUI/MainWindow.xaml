@@ -54,10 +54,13 @@
                                     <Button Content="创建模板" Click="CreateButton_Click" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="创建直线" Click="CreateButton_Click1" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="模板直线" Click="FunctionTest_Click" Style="{StaticResource ButtonBase}"></Button>
+<<<<<<< HEAD
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource TextBlockBase}" Text="模板阈值 "></TextBlock>
                                     <TextBox Style="{StaticResource TextBoxPort}" Width="50" Name="MuBanContrast" TextChanged="MuBanContrast_TextChanged" HorizontalContentAlignment="Center"></TextBox>
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                 </StackPanel>
                             </StackPanel>
 
@@ -67,8 +70,11 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="找模板" Click="FindModelButton_Click" Style="{StaticResource ButtonBase}"></Button>
                                     <Button Content="找直线" Click="FindLineButton_Click" Style="{StaticResource ButtonBase}"></Button>
+<<<<<<< HEAD
                                     <TextBlock Margin="10,0" Name="ImageIndexNum" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
                                     <Button Content="-1" Click="ImageIndexNumAction" Style="{StaticResource ButtonBase}"></Button>
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="点1" Click="Calib1Button_Click" Style="{StaticResource ButtonBase}"></Button>
@@ -109,7 +115,11 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock VerticalAlignment="Center" Style="{StaticResource TextBlockBase}" Text=" 扫码枪 "></TextBlock>
                                     <ComboBox VerticalContentAlignment="Center" Style="{StaticResource ComboBoxBase}" x:Name="Com" DropDownOpened="ComboBox_DropDownOpened" DropDownClosed="Com_DropDownClosed" IsEditable="True" IsReadOnly="True"></ComboBox>
+<<<<<<< HEAD
                                     <CheckBox Name="ImageCheckBox" Margin="10,0" Checked="ImageCheckBox_Checked" Content="图像"></CheckBox>
+=======
+                                    
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                 </StackPanel>
                             </StackPanel>
                         </TabItem>
@@ -132,6 +142,7 @@
                             <TextBlock Text="Score: "></TextBlock>
                             <TextBlock Name="TextScore1"></TextBlock>
                         </StackPanel>
+<<<<<<< HEAD
                         <Grid Margin="0,20,0,5">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition></ColumnDefinition>
@@ -156,9 +167,37 @@
 
                         </Grid>
 
+=======
+                        <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                            <TextBlock Text="贴胶轴: "></TextBlock>
+                            <TextBlock Name="TextX1"></TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                            <TextBlock Name="TextMaxX1"></TextBlock>
+                            <TextBlock Name="TextMinX1"></TextBlock>
+                        </StackPanel>
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                     </StackPanel>
                 </Grid>
 
+            </Grid>
+        </TabItem>
+        <!--<TabItem Header="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="6*"></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="1" Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Style="{StaticResource TextBoxPath}" Height="30" Name="BarcodeString"></TextBox>
+                        <Button Style="{StaticResource ButtonBase}" Name="FunctionButton" Content="扫码" Click="FunctionButton_Click"></Button>
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </TabItem>
         <!--<TabItem Header="2">
