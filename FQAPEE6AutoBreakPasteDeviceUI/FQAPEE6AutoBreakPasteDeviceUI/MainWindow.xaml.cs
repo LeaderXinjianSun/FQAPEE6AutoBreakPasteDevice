@@ -17,7 +17,7 @@ using HalconDotNet;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using BingLibrary.hjb;
+//using BingLibrary.hjb;
 using Leader.DeltaAS300ModbusTCP;
 using System.Windows.Threading;
 using System.Drawing;
@@ -614,10 +614,9 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         private async void PLCRun()
         {
             bool ScanCMD = false, GigECMD = false;
-            int max = 0, min = 0;
             while (true)
             {
-                await Task.Delay(200);
+                await Task.Delay(100);
                 try
                 {
                     lock (modbustcp)
@@ -627,7 +626,6 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         TextX1.Text = ((double)CX / 100).ToString();
                         CY = aS300ModbusTCP.ReadDWORD("D10");
                         TextY1.Text = ((double)CY / 100).ToString();
-                        //aS300ModbusTCP.WriteDWORD("D2", -99999999);
                     }
                     if (ScanCMD != PLC_In[0])
                     {
