@@ -82,7 +82,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="dialog.cs" />
     <Compile Include="MySQLClass.cs" />
+    <Compile Include="OraDB.cs" />
+    <Compile Include="OraDBBase.cs" />
     <Compile Include="Scan.cs" />
     <Page Include="Dictionary1.xaml">
       <SubType>Designer</SubType>

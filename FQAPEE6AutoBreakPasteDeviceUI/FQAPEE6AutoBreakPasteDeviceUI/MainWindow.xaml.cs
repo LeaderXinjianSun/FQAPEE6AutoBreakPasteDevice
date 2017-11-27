@@ -25,6 +25,9 @@ using OfficeOpenXml;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using System.IO.Ports;
+using SxjLibrary;
+using 臻鼎科技OraDB;
+using System.Data;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -66,6 +69,9 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         Double[] CrossPoint;
         string[] ImageFiles;
         int ImageIndex;
+        private dialog mydialog = new dialog();
+        bool ShutdownFlag = false;
+        bool Loadin = false;
 
         //delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
         //public class DeviceLostEventArgs : RoutedEventArgs
@@ -85,11 +91,27 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         public MainWindow()
         {
             InitializeComponent();
-            hdev_export = new HDevelopExport();
-            drawing_objects = new List<HTuple>();
-            mySQLClass = new MySQLClass();
-            //mySQLClass.test();
-            //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
+            #region 判断系统是否已启动
+
+            System.Diagnostics.Process[] myProcesses = System.Diagnostics.Process.GetProcessesByName("FQAPEE6AutoBreakPasteDeviceUI");//获取指定的进程名   
+            if (myProcesses.Length > 1) //如果可以获取到知道的进程名则说明已经启动
+            {
+                System.Windows.MessageBox.Show("不允许重复打开软件");
+                System.Windows.Application.Current.Shutdown();
+                ShutdownFlag = true;
+            }
+            else
+            {
+                hdev_export = new HDevelopExport();
+                drawing_objects = new List<HTuple>();
+                mySQLClass = new MySQLClass();
+                //mySQLClass.test();
+                //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
+            }
+
+
+            #endregion
+
 
 
         }
@@ -279,11 +301,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
         private void MetroWindow_Closed(object sender, EventArgs e)
         {
-            FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
-            BinaryFormatter b = new BinaryFormatter();
-            b.Serialize(fileStream, CoorPar);
-            fileStream.Close();
-            hdev_export.CloseCamera();
+            if (!ShutdownFlag)
+            {
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+                hdev_export.CloseCamera();
+            }
+
 
            
         }
@@ -589,10 +615,26 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                             Rb[23 - i] = false;
                         }
                     }
+                    bool[] _AllowBarRecord;
                     lock (modbustcp)
                     {
                         aS300ModbusTCP.WriteMultCoils("M5103", Rb);
-                        aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                        _AllowBarRecord = aS300ModbusTCP.ReadCoils("M6000", 5);
+                        //aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                    }
+                    if (UpdateRecode(NewStr, _AllowBarRecord[4]))
+                    {
+                        lock (modbustcp)
+                        {
+                            aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                        }
+                    }
+                    else
+                    {
+                        lock (modbustcp)
+                        {
+                            aS300ModbusTCP.WriteSigleCoil("M5101", true);
+                        }
                     }
                 }
                 else
@@ -610,6 +652,65 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                     aS300ModbusTCP.WriteSigleCoil("M5101", true);
                 }
             }
+        }
+        private bool UpdateRecode(string barcode , bool mode)
+        {
+            string[] arrField = new string[1];
+            string[] arrValue = new string[1];
+            try
+            {
+                OraDB oraDB = new OraDB("fpcsfcdb", "sfcdar", "sfcdardata");
+                string tablename = "sfcdata.barautbind";
+                if (oraDB.isConnect())
+                {
+                    arrField[0] = "SCPNLBAR";
+                    arrValue[0] = barcode;
+                    DataSet s1 = oraDB.selectSQL(tablename.ToUpper(), arrField, arrValue);
+                    DataTable PanelDt = s1.Tables[0];
+                    if (PanelDt.Rows.Count == 0)
+                    {
+                        MsgTextBox.Text = AddMessage(barcode + "数据库无记录");
+                        oraDB.disconnect();
+                        return false;
+                    }
+                    else
+                    {
+                        if (PanelDt.Rows[0]["BLID"].ToString() == "" || mode)
+                        {
+                            string[,] arrFieldAndNewValue = { { "BLDATE", "to_date('" + DateTime.Now.ToString() + "', 'yyyy/mm/dd hh24:mi:ss')" }, { "BLID", CoorPar.ZhiJuBianHao }, { "BLNAME", CoorPar.ZhiJuMingChen }, { "BLUID", CoorPar.ZheXianRenYuan }, { "BLMID", CoorPar.JiTaiBianHao } };
+
+                            string[,] arrFieldAndOldValue = { { "SCPNLBAR", barcode } };
+                            oraDB.updateSQL2(tablename.ToUpper(), arrFieldAndNewValue, arrFieldAndOldValue);
+                            MsgTextBox.Text = AddMessage(barcode + "数据更新完成");
+                            return true;
+
+                        }
+                        else
+                        {
+                            MsgTextBox.Text = AddMessage(barcode + " 条码重复");
+                            oraDB.disconnect();
+                            return false;
+                        }
+                    }
+                    
+
+
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("数据库连接失败");
+                    oraDB.disconnect();
+                    return false;
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                MsgTextBox.Text = AddMessage(ex.Message);
+                return false;
+            }
+
+            
         }
         private async void PLCRun()
         {
@@ -1113,6 +1214,92 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             }
         }
 
+        private async void MetroWindow_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = true;
+            //ActionMessages.ExecuteAction("winclose");
+            mydialog.changeaccent("Red");
+            var r = await mydialog.showconfirm("确定要关闭程序吗？");
+            if (r)
+            {
+                System.Windows.Application.Current.Shutdown();
+            }
+            else
+            {
+                mydialog.changeaccent("Cobalt");
+            }
+        }
+
+        private async void LoadinButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> r;
+            if (!Loadin)
+            {
+                r = await mydialog.showlogin();
+                if (r[1] == "543337")
+                {
+                    Loadin = true;
+                    LoadinButton.Content = "登出";
+                    ChuangJianTabItem.IsEnabled = true;
+                    BiaoDingTabItem.IsEnabled = true;
+                    SaoMaTabItem.IsEnabled = true;
+                    QiTaTabItem.IsEnabled = true;
+                }
+                if (r[1] == "123456")
+                {
+                    Loadin = true;
+                    LoadinButton.Content = "登出";
+                    ZhiJuBianHao.IsReadOnly = false;
+                    ZhiJuMingChen.IsReadOnly = false;
+                    ZheXianRenYuan.IsReadOnly = false;
+                    JiTaiBianHao.IsReadOnly = false;
+                }
+
+            }
+            else
+            {
+                Loadin = false;
+                LoadinButton.Content = "登录";
+                ChuangJianTabItem.IsEnabled = false;
+                BiaoDingTabItem.IsEnabled = false;
+                SaoMaTabItem.IsEnabled = false;
+                QiTaTabItem.IsEnabled = false;
+                ZhiJuBianHao.IsReadOnly = true;
+                ZhiJuMingChen.IsReadOnly = true;
+                ZheXianRenYuan.IsReadOnly = true;
+                JiTaiBianHao.IsReadOnly = true;
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+            }
+        }
+
+        private void ZhiJuBianHao_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZhiJuBianHao = ZhiJuBianHao.Text;
+        }
+
+        private void ZhiJuMingChen_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZhiJuMingChen = ZhiJuMingChen.Text;
+        }
+
+        private void ZheXianRenYuan_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZheXianRenYuan = ZheXianRenYuan.Text;
+        }
+
+        private void JiTaiBianHao_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.JiTaiBianHao = JiTaiBianHao.Text;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRecode("EE6-WLB-HB0015-0105", false);
+        }
+
         private void FunctionButton1_Click(object sender, RoutedEventArgs e)
         {
             if (BarcodeString.Text != "Error" && BarcodeString.Text.Length > 5)
@@ -1210,6 +1397,19 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             
             Init();
             Com.Text = CoorPar.ScanCom;
+            LoadinButton.Content = "登录";
+            ChuangJianTabItem.IsEnabled = false;
+            BiaoDingTabItem.IsEnabled = false;
+            SaoMaTabItem.IsEnabled = false;
+            QiTaTabItem.IsEnabled = false;
+            ZhiJuBianHao.IsReadOnly = true;
+            ZhiJuMingChen.IsReadOnly = true;
+            ZheXianRenYuan.IsReadOnly = true;
+            JiTaiBianHao.IsReadOnly = true;
+            ZhiJuBianHao.Text = CoorPar.ZhiJuBianHao;
+            ZhiJuMingChen.Text = CoorPar.ZhiJuMingChen;
+            ZheXianRenYuan.Text = CoorPar.ZheXianRenYuan;
+            JiTaiBianHao.Text = CoorPar.JiTaiBianHao;
             if (CoorPar.MuBanContrast != null)
             {
                 MuBanContrast.Text = CoorPar.MuBanContrast.D.ToString();
@@ -1373,6 +1573,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         public HTuple HengXianThreshold;
         public HTuple HengXianPixNum;
         public HTuple MuBanContrast;
+        public string ZhiJuBianHao;
+        public string ZhiJuMingChen;
+        public string ZheXianRenYuan;
+        public string JiTaiBianHao;
+
         public void Calc()
         {
             DisT = (Row1 - Row2) / (DRow1 - DRow2);

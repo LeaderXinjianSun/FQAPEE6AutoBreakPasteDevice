@@ -10,7 +10,7 @@
         mc:Ignorable="d"
         Title="FQAPEE6AutoBreakPasteDeviceUI" Height="600" Width="1024"
                    WindowStartupLocation="CenterScreen"
-                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True" Loaded="MetroWindow_Loaded" Closed="MetroWindow_Closed">
+                     BorderThickness="0" GlowBrush="Black"  ResizeMode="CanResizeWithGrip" WindowTransitionsEnabled="True" Loaded="MetroWindow_Loaded" Closed="MetroWindow_Closed" Closing="MetroWindow_Closing">
     <metro:MetroWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -39,8 +39,30 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <TabControl>
-                        <TabItem Header="运行" HorizontalAlignment="Left" Width="65"></TabItem>
-                        <TabItem Header="创建">
+                        <TabItem Header="运行" HorizontalAlignment="Left" Width="65">
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <!--<Button Style="{StaticResource ButtonBase}" Click="Button_Click"></Button>-->
+                                    <Button x:Name="LoadinButton" Click="LoadinButton_Click" Style="{StaticResource ButtonBase}"></Button>
+                                    
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,5"  >
+                                    <TextBlock Text="治具编号" Style="{StaticResource TextBlockParameterMidName}"></TextBlock>
+                                    <TextBox x:Name="ZhiJuBianHao" LostFocus="ZhiJuBianHao_LostFocus" Width="80" Style="{StaticResource TextBoxPort}"></TextBox>
+                                    <TextBlock Text="治具名称" Style="{StaticResource TextBlockParameterMidName}"></TextBlock>
+                                    <TextBox x:Name="ZhiJuMingChen" Width="80" LostFocus="ZhiJuMingChen_LostFocus" Style="{StaticResource TextBoxPort}"></TextBox>
+                                    
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" >
+                                    
+                                    <TextBlock Text="折线人员" Style="{StaticResource TextBlockParameterMidName}"></TextBlock>
+                                    <TextBox x:Name="ZheXianRenYuan" LostFocus="ZheXianRenYuan_LostFocus" Width="80" Style="{StaticResource TextBoxPort}"></TextBox>
+                                    <TextBlock Text="机台编号" Style="{StaticResource TextBlockParameterMidName}"></TextBlock>
+                                    <TextBox x:Name="JiTaiBianHao" Width="80" LostFocus="JiTaiBianHao_LostFocus" Style="{StaticResource TextBoxPort}"></TextBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="创建" Name="ChuangJianTabItem">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="拍照" Click="GrapButton_Click" Style="{StaticResource ButtonBase}"></Button>
@@ -62,7 +84,7 @@
                             </StackPanel>
 
                         </TabItem>
-                        <TabItem Header="标定">
+                        <TabItem Header="标定" Name="BiaoDingTabItem">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="找模板" Click="FindModelButton_Click" Style="{StaticResource ButtonBase}"></Button>
@@ -89,7 +111,7 @@
                                 </StackPanel>
                             </StackPanel>
                         </TabItem>
-                        <TabItem Header="扫码">
+                        <TabItem Header="扫码" Name="SaoMaTabItem">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBox Style="{StaticResource TextBoxPath}" Height="30" Name="BarcodeString"></TextBox>
@@ -100,7 +122,7 @@
                                 </StackPanel>
                             </StackPanel>
                         </TabItem>
-                        <TabItem Header="其他">
+                        <TabItem Header="其他" Name="QiTaTabItem">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="读" Name="ReadCoor" ToolTip="从PLC读取数据到文件" Click="ReadCoor_Click" Style="{StaticResource ButtonBase}"></Button>
