@@ -17,7 +17,7 @@ using HalconDotNet;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using BingLibrary.hjb;
+//using BingLibrary.hjb;
 using Leader.DeltaAS300ModbusTCP;
 using System.Windows.Threading;
 using System.Drawing;
@@ -25,6 +25,9 @@ using OfficeOpenXml;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using System.IO.Ports;
+using SxjLibrary;
+using 臻鼎科技OraDB;
+using System.Data;
 
 namespace FQAPEE6AutoBreakPasteDeviceUI
 {
@@ -56,7 +59,11 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         HTuple homMat2D;
         Bitmap ImgBitmap;
         MySQLClass mySQLClass;
+<<<<<<< HEAD
+        int CX, CY;
+=======
         int CX;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         //bool Window2Init = false;
         double Line1Angle, Line1Dist, Line2Angle, Line2Dist;
 
@@ -64,6 +71,17 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         bool[] PLC_In;
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
         Double[] CrossPoint;
+<<<<<<< HEAD
+        string[] ImageFiles;
+        int ImageIndex;
+<<<<<<< HEAD
+        private dialog mydialog = new dialog();
+        bool ShutdownFlag = false;
+        bool Loadin = false;
+=======
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
 
         //delegate void DeviceLostRouteEventHandler(object sender, DeviceLostEventArgs e);
         //public class DeviceLostEventArgs : RoutedEventArgs
@@ -83,11 +101,39 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
         public MainWindow()
         {
             InitializeComponent();
+<<<<<<< HEAD
+            #region 判断系统是否已启动
+
+            System.Diagnostics.Process[] myProcesses = System.Diagnostics.Process.GetProcessesByName("FQAPEE6AutoBreakPasteDeviceUI");//获取指定的进程名   
+            if (myProcesses.Length > 1) //如果可以获取到知道的进程名则说明已经启动
+            {
+                System.Windows.MessageBox.Show("不允许重复打开软件");
+                System.Windows.Application.Current.Shutdown();
+                ShutdownFlag = true;
+            }
+            else
+            {
+                hdev_export = new HDevelopExport();
+                drawing_objects = new List<HTuple>();
+                mySQLClass = new MySQLClass();
+                //mySQLClass.test();
+                //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
+            }
+
+
+            #endregion
+
+=======
             hdev_export = new HDevelopExport();
             drawing_objects = new List<HTuple>();
             mySQLClass = new MySQLClass();
+<<<<<<< HEAD
+            //mySQLClass.test();
+=======
             mySQLClass.test();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             //iCImagingControl.DeviceLost += ICImagingControl_DeviceLost;
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
 
 
         }
@@ -141,6 +187,29 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
             image = new HImage(hdev_export.ho_Image);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
 
+<<<<<<< HEAD
+        }
+        private void grapAction2()
+        {
+            OnClearAllObjects();
+            //hdev_export.GrapCamera();
+            hdev_export.ReadImage(ImageFiles[ImageIndex]);
+            ImageIndex++;
+            if (ImageIndex >= ImageFiles.Length)
+            {
+                ImageIndex = 0;
+            }
+            ImageIndexNum.Text = ImageIndex.ToString();
+            if (image != null)
+            {
+                image.Dispose();
+            }
+
+            image = new HImage(hdev_export.ho_Image);
+            hSmartWindowControlWPF1.HalconWindow.DispObj(image);
+
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         }
         private void OnClearAllObjects()
         {
@@ -162,7 +231,15 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
                 OnClearAllObjects();
             }
             
-            hdev_export.GrapCamera();
+            
+            if ((bool)ImageCheckBox.IsChecked)
+            {
+                hdev_export.ReadImage(System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+            }
+            else
+            {
+                hdev_export.GrapCamera();
+            }
             background_image = hdev_export.ho_Image;
             hSmartWindowControlWPF1.HalconWindow.AttachBackgroundToWindow(new HImage(background_image));
             hdev_export.add_new_drawing_object("rectangle2", hSmartWindowControlWPF1.HalconID, out draw_id);
@@ -218,6 +295,10 @@ namespace FQAPEE6AutoBreakPasteDeviceUI
 
                 Rectangle.AreaCenter(out Row, out Column);
                 //                //hdev_export.GrapCamera();
+                if ((bool)ImageCheckBox.IsChecked)
+                {
+                    grapAction1();
+                }
                 image.Dispose();
                 image = new HImage(hdev_export.ho_Image);
                 image.DispObj(Window);
@@ -228,7 +309,11 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 Window.SetColor("green");
                 Window.SetDraw("margin");
                 ModelRegion.DispObj(Window);
-                image.WriteImage("tiff", 0, System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+                if (!(bool)ImageCheckBox.IsChecked)
+                {
+                    image.WriteImage("tiff", 0, System.Environment.CurrentDirectory + "\\ModelImage.tiff");
+                }
+                
                 ShapeModel.WriteShapeModel(System.Environment.CurrentDirectory + "\\ShapeModel.shm");
             }
             else
@@ -241,11 +326,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
         private void MetroWindow_Closed(object sender, EventArgs e)
         {
-            FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
-            BinaryFormatter b = new BinaryFormatter();
-            b.Serialize(fileStream, CoorPar);
-            fileStream.Close();
-            hdev_export.CloseCamera();
+            if (!ShutdownFlag)
+            {
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+                hdev_export.CloseCamera();
+            }
+
 
            
         }
@@ -290,10 +379,17 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             HObject EdgeAmplitude, EdgeDirection;
             HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
             HObject region1;
+<<<<<<< HEAD
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, CoorPar.ShuXianThreshold, 255);
+            region1.DispObj(Window);
+            HTuple angle, dist;
+            HOperatorSet.HoughLines(region1, 8, CoorPar.ShuXianPixNum, 30, 30, out angle, out dist);
+=======
             HOperatorSet.Threshold(EdgeAmplitude, out region1, 34, 255);
             region1.DispObj(Window);
             HTuple angle, dist;
             HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             HObject LinesHNF;
             if (dist.Length > 0)
             {
@@ -309,9 +405,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
             ImgReduced = image.ReduceDomain(Rec2Region);
             HOperatorSet.SobelDir(ImgReduced, out EdgeAmplitude, out EdgeDirection, "sum_abs", 3);
+<<<<<<< HEAD
+            HOperatorSet.Threshold(EdgeAmplitude, out region1, CoorPar.HengXianThreshold, 255);
+            region1.DispObj(Window);
+            HOperatorSet.HoughLines(region1, 8, CoorPar.HengXianPixNum, 30, 30, out angle, out dist);
+=======
             HOperatorSet.Threshold(EdgeAmplitude, out region1, 29, 255);
             region1.DispObj(Window);
             HOperatorSet.HoughLines(region1, 8, 150, 30, 30, out angle, out dist);
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             HObject LinesHNF1;
 
             if (dist.Length > 0)
@@ -487,13 +589,181 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
      
         }
+        private void PLCScanAction(string str)
+        {
+            string[] strs = str.Split('\r');
+            MsgTextBox.Text = AddMessage(strs[0]);
+            BarcodeString.Text = strs[0];
+            string NewStr = strs[0];
+            if (NewStr != "Error")
+            {
+                string FindStr = mySQLClass.FindResult(NewStr);
+                MsgTextBox.Text = AddMessage(FindStr);
+                if (FindStr.Length == 36)
+                {
+                    bool[] Rb = new bool[36];
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (FindStr[0 + 6 * i] == '1')
+                        {
+                            Rb[0 + i] = true;
+                        }
+                        else
+                        {
+                            Rb[0 + i] = false;
+                        }
+                        if (FindStr[1 + 6 * i] == '1')
+                        {
+                            Rb[6 + i] = true;
+                        }
+                        else
+                        {
+                            Rb[6 + i] = false;
+                        }
+                        if (FindStr[2 + 6 * i] == '1')
+                        {
+                            Rb[12 + i] = true;
+                        }
+                        else
+                        {
+                            Rb[12 + i] = false;
+                        }
+                        if (FindStr[3 + 6 * i] == '1')
+                        {
+                            Rb[35 - i] = true;
+                        }
+                        else
+                        {
+                            Rb[35 - i] = false;
+                        }
+                        if (FindStr[4 + 6 * i] == '1')
+                        {
+                            Rb[29 - i] = true;
+                        }
+                        else
+                        {
+                            Rb[29 - i] = false;
+                        }
+                        if (FindStr[5 + 6 * i] == '1')
+                        {
+                            Rb[23 - i] = true;
+                        }
+                        else
+                        {
+                            Rb[23 - i] = false;
+                        }
+                    }
+                    bool[] _AllowBarRecord;
+                    lock (modbustcp)
+                    {
+                        aS300ModbusTCP.WriteMultCoils("M5103", Rb);
+                        _AllowBarRecord = aS300ModbusTCP.ReadCoils("M6000", 5);
+                        //aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                    }
+                    if (UpdateRecode(NewStr, _AllowBarRecord[4]))
+                    {
+                        lock (modbustcp)
+                        {
+                            aS300ModbusTCP.WriteSigleCoil("M5100", true);
+                        }
+                    }
+                    else
+                    {
+                        lock (modbustcp)
+                        {
+                            aS300ModbusTCP.WriteSigleCoil("M5101", true);
+                        }
+                    }
+                }
+                else
+                {
+                    lock (modbustcp)
+                    {
+                        aS300ModbusTCP.WriteSigleCoil("M5101", true);
+                    }
+                }
+            }
+            else
+            {
+                lock (modbustcp)
+                {
+                    aS300ModbusTCP.WriteSigleCoil("M5101", true);
+                }
+            }
+        }
+        private bool UpdateRecode(string barcode , bool mode)
+        {
+            string[] arrField = new string[1];
+            string[] arrValue = new string[1];
+            try
+            {
+                OraDB oraDB = new OraDB("fpcsfcdb", "sfcdar", "sfcdardata");
+                string tablename = "sfcdata.barautbind";
+                if (oraDB.isConnect())
+                {
+                    arrField[0] = "SCPNLBAR";
+                    arrValue[0] = barcode;
+                    DataSet s1 = oraDB.selectSQL(tablename.ToUpper(), arrField, arrValue);
+                    DataTable PanelDt = s1.Tables[0];
+                    if (PanelDt.Rows.Count == 0)
+                    {
+                        MsgTextBox.Text = AddMessage(barcode + "数据库无记录");
+                        oraDB.disconnect();
+                        return false;
+                    }
+                    else
+                    {
+                        if (PanelDt.Rows[0]["BLID"].ToString() == "" || mode)
+                        {
+                            string[,] arrFieldAndNewValue = { { "BLDATE", "to_date('" + DateTime.Now.ToString() + "', 'yyyy/mm/dd hh24:mi:ss')" }, { "BLID", CoorPar.ZhiJuBianHao }, { "BLNAME", CoorPar.ZhiJuMingChen }, { "BLUID", CoorPar.ZheXianRenYuan }, { "BLMID", CoorPar.JiTaiBianHao } };
+
+                            string[,] arrFieldAndOldValue = { { "SCPNLBAR", barcode } };
+                            oraDB.updateSQL2(tablename.ToUpper(), arrFieldAndNewValue, arrFieldAndOldValue);
+                            MsgTextBox.Text = AddMessage(barcode + "数据更新完成");
+                            return true;
+
+                        }
+                        else
+                        {
+                            MsgTextBox.Text = AddMessage(barcode + " 条码重复");
+                            oraDB.disconnect();
+                            return false;
+                        }
+                    }
+                    
+
+
+                }
+                else
+                {
+                    MsgTextBox.Text = AddMessage("数据库连接失败");
+                    oraDB.disconnect();
+                    return false;
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                MsgTextBox.Text = AddMessage(ex.Message);
+                return false;
+            }
+
+            
+        }
         private async void PLCRun()
         {
+<<<<<<< HEAD
+            bool ScanCMD = false, GigECMD = false;
+<<<<<<< HEAD
+=======
+=======
             bool ScanCMD = false,USBCameraCMD = false,GigECMD = false;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             int max = 0, min = 0;
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
             while (true)
             {
-                await Task.Delay(200);
+                await Task.Delay(100);
                 try
                 {
                     lock (modbustcp)
@@ -501,13 +771,33 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                         PLC_In = aS300ModbusTCP.ReadCoils("M5000", 96);
                         CX = aS300ModbusTCP.ReadDWORD("D6");
                         TextX1.Text = ((double)CX / 100).ToString();
+<<<<<<< HEAD
+                        CY = aS300ModbusTCP.ReadDWORD("D10");
+                        TextY1.Text = ((double)CY / 100).ToString();
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                         //aS300ModbusTCP.WriteDWORD("D2", -99999999);
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
                     }
                     if (ScanCMD != PLC_In[0])
                     {
                         ScanCMD = PLC_In[0];
                         if (ScanCMD)
                         {
+<<<<<<< HEAD
+                            ScanCMD = false;
+                            lock (modbustcp)
+                            {
+                                aS300ModbusTCP.WriteSigleCoil("M5000", false);
+                            }
+                            Scan.GetBarCode(PLCScanAction);
+
+                        }
+                    }
+                    
+=======
                             PLC_In[0] = false;
                             await Task.Delay(200);
                             lock (modbustcp)
@@ -536,6 +826,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
                     //    }
                     //}
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                     if (GigECMD != PLC_In[2])
                     {
                         GigECMD = PLC_In[2];
@@ -551,7 +842,12 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                             {
                                 if (FindLines())
                                 {
+<<<<<<< HEAD
+                                    TextMaxX1.Text = CrossPoint[0].ToString("F2");
+                                    TextMinX1.Text = CrossPoint[1].ToString("F2");
+=======
                                     
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                     int DD12, DD14, DD16;
                                     DD12 = (int)((CrossPoint[1] - CoorPar.Y0) * -1 / CoorPar.DisT);
                                     DD14 = (int)(((CrossPoint[0] - CoorPar.X0) * -1) / CoorPar.DisT);
@@ -575,6 +871,10 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                                             aS300ModbusTCP.WriteDWORD("D14", 0);
                                             aS300ModbusTCP.WriteDWORD("D16", 0);
                                             MsgTextBox.Text = AddMessage("数值异常");
+<<<<<<< HEAD
+                                            hdev_export.SaveImage();
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                             aS300ModbusTCP.WriteSigleCoil("M5143", true);
                                         }
 
@@ -586,6 +886,10 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                                             aS300ModbusTCP.WriteDWORD("D12", DD12);
                                             aS300ModbusTCP.WriteDWORD("D14", DD14);
                                             aS300ModbusTCP.WriteDWORD("D16", DD16);
+<<<<<<< HEAD
+
+
+=======
                                             if (max < DD12)
                                             {
                                                 max = DD12;
@@ -596,6 +900,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                                             }
                                             TextMaxX1.Text = max.ToString();
                                             TextMinX1.Text = min.ToString();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
                                             MsgTextBox.Text = AddMessage("X:" + DD12.ToString() + ",Y:" + DD14.ToString() + ",U:" + DD16.ToString());
                                             aS300ModbusTCP.WriteSigleCoil("M5140", true);
                                         }
@@ -654,6 +959,23 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         }
         private double[] GetCrostPoint(double Angle1, double Dist1, double Angle2, double Dist2)
         {
+<<<<<<< HEAD
+            double[] xy0 = new double[2];
+            double a1, b1, a2, b2;
+            a2 = Math.Tan(Angle2 - Math.PI / 2);
+            b2 = Dist2 / Math.Sin(Angle2);
+            if (Angle1 == 0)
+            {
+                xy0[0] = Dist1;
+            }
+            else
+            {
+                a1 = Math.Tan(Angle1 - Math.PI / 2);
+                b1 = Dist1 / Math.Sin(Angle1);
+                xy0[0] = (b2 - b1) / (a1 - a2);
+            }
+            xy0[1] = a2 * xy0[0] + b2;
+=======
             double[] xy0 = new double[2]; 
             double a1 = Math.Tan(Angle1 - Math.PI / 2);
             double b1 = Dist1 / Math.Sin(Angle1);
@@ -661,12 +983,19 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             double b2 = Dist2 / Math.Sin(Angle2);
             xy0[0] = (b2 - b1) / (a1 - a2);
             xy0[1] = a1 * xy0[0] + b1;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             return xy0;
         }
         public void PrintBarcode(string str)
         {
+<<<<<<< HEAD
+            string[] strs = str.Split('\r');
+            MsgTextBox.Text = AddMessage(strs[0]);
+            BarcodeString.Text = strs[0];
+=======
             MsgTextBox.Text = AddMessage(str);
             BarcodeString.Text = str;
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         }
         void Init()
         {
@@ -723,7 +1052,15 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 Window.DispCross(RowCheck, ColumnCheck, 60, 0);
                 TextRow1.Text = RowCheck.DArr[0].ToString("F2");
                 TextColumn1.Text = ColumnCheck.DArr[0].ToString("F2");
-                TextAngle1.Text = AngleCheck.DArr[0].ToString("F2");
+                if (AngleCheck.DArr[0] > Math.PI)
+                {
+                    TextAngle1.Text = ((AngleCheck.DArr[0] - 2 * Math.PI) / Math.PI * 180).ToString("F2");
+                }
+                else
+                {
+                    TextAngle1.Text = (AngleCheck.DArr[0] / Math.PI * 180).ToString("F2");
+                }
+                
                 TextScore1.Text = Score.DArr[0].ToString("F2");
 
             }
@@ -952,6 +1289,147 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             Scan.GetBarCode(PrintBarcode);
         }
 
+<<<<<<< HEAD
+        private void ImageCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            ImageFiles = Directory.GetFiles(@"D:\image");
+            ImageIndex = 0;
+        }
+
+        private void MuBanContrast_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CoorPar.MuBanContrast = new HTuple(double.Parse(MuBanContrast.Text));
+        }
+
+        private void ShuXianThreshold_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CoorPar.ShuXianThreshold = new HTuple(double.Parse(ShuXianThreshold.Text));
+        }
+
+        private void ShuXianPixNum_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CoorPar.ShuXianPixNum = new HTuple(double.Parse(ShuXianPixNum.Text));
+        }
+
+        private void HengXianThreshold_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CoorPar.HengXianThreshold = new HTuple(double.Parse(HengXianThreshold.Text));
+        }
+
+        private void HengXianPixNum_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CoorPar.HengXianPixNum = new HTuple(double.Parse(HengXianPixNum.Text));
+        }
+
+        private void ImageIndexNumAction(object sender, RoutedEventArgs e)
+        {
+            if ((bool)ImageCheckBox.IsChecked)
+            {
+                ImageIndex--;
+                if (ImageIndex < 0)
+                {
+                    ImageIndex = ImageFiles.Length - 1;
+                }
+                ImageIndexNum.Text = ImageIndex.ToString();
+            }
+        }
+
+        private async void MetroWindow_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = true;
+            //ActionMessages.ExecuteAction("winclose");
+            mydialog.changeaccent("Red");
+            var r = await mydialog.showconfirm("确定要关闭程序吗？");
+            if (r)
+            {
+                System.Windows.Application.Current.Shutdown();
+            }
+            else
+            {
+                mydialog.changeaccent("Cobalt");
+            }
+        }
+
+        private async void LoadinButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> r;
+            if (!Loadin)
+            {
+                r = await mydialog.showlogin();
+                if (r[1] == "543337")
+                {
+                    Loadin = true;
+                    LoadinButton.Content = "登出";
+                    ChuangJianTabItem.IsEnabled = true;
+                    BiaoDingTabItem.IsEnabled = true;
+                    SaoMaTabItem.IsEnabled = true;
+                    QiTaTabItem.IsEnabled = true;
+                }
+                if (r[1] == "123456")
+                {
+                    Loadin = true;
+                    LoadinButton.Content = "登出";
+                    ZhiJuBianHao.IsReadOnly = false;
+                    ZhiJuMingChen.IsReadOnly = false;
+                    ZheXianRenYuan.IsReadOnly = false;
+                    JiTaiBianHao.IsReadOnly = false;
+                }
+
+            }
+            else
+            {
+                Loadin = false;
+                LoadinButton.Content = "登录";
+                ChuangJianTabItem.IsEnabled = false;
+                BiaoDingTabItem.IsEnabled = false;
+                SaoMaTabItem.IsEnabled = false;
+                QiTaTabItem.IsEnabled = false;
+                ZhiJuBianHao.IsReadOnly = true;
+                ZhiJuMingChen.IsReadOnly = true;
+                ZheXianRenYuan.IsReadOnly = true;
+                JiTaiBianHao.IsReadOnly = true;
+                FileStream fileStream = new FileStream(System.Environment.CurrentDirectory + "\\CoorPar.dat", FileMode.Create);
+                BinaryFormatter b = new BinaryFormatter();
+                b.Serialize(fileStream, CoorPar);
+                fileStream.Close();
+            }
+        }
+
+        private void ZhiJuBianHao_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZhiJuBianHao = ZhiJuBianHao.Text;
+        }
+
+        private void ZhiJuMingChen_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZhiJuMingChen = ZhiJuMingChen.Text;
+        }
+
+        private void ZheXianRenYuan_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.ZheXianRenYuan = ZheXianRenYuan.Text;
+        }
+
+        private void JiTaiBianHao_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CoorPar.JiTaiBianHao = JiTaiBianHao.Text;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRecode("EE6-WLB-HB0015-0105", false);
+        }
+
+        private void FunctionButton1_Click(object sender, RoutedEventArgs e)
+        {
+            if (BarcodeString.Text != "Error" && BarcodeString.Text.Length > 5)
+            {
+                MsgTextBox.Text = AddMessage(mySQLClass.FindResult(BarcodeString.Text));
+            }
+        }
+
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
         private void WriteCoor_Click(object sender, RoutedEventArgs e)
         {
             WriteCoorData();
@@ -959,12 +1437,54 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
 
         private void FindModelButton_Click(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
+            if ((bool)ImageCheckBox.IsChecked)
+            {
+                grapAction2();
+            }
+            else
+            {
+                grapAction();
+            }
+            
+=======
             grapAction();
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             Action();
         }
 
         private void FindLineButton_Click(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
+            if ((bool)ImageCheckBox.IsChecked)
+            {
+                grapAction2();
+            }
+            else
+            {
+                grapAction();
+            }
+            Action();
+            if (RowCheck.Length == 1)
+            {
+                if (FindLines())
+                {
+                    TextMaxX1.Text = CrossPoint[0].ToString("F2");
+                    TextMinX1.Text = CrossPoint[1].ToString("F2");
+                }  
+
+                //if (Score.D >= 0.7)
+                //{
+
+
+                //    FindLines();
+                //    MsgTextBox.Text = AddMessage("查找模板完成");
+                //}
+                //else
+                //{
+                //    MsgTextBox.Text = AddMessage("模板质量低");
+                //}
+=======
             grapAction();
             Action();
             if (RowCheck.Length == 1)
@@ -980,6 +1500,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
                 {
                     MsgTextBox.Text = AddMessage("模板质量低");
                 }
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
 
             }
             else
@@ -1020,6 +1541,45 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             
             Init();
             Com.Text = CoorPar.ScanCom;
+<<<<<<< HEAD
+            LoadinButton.Content = "登录";
+            ChuangJianTabItem.IsEnabled = false;
+            BiaoDingTabItem.IsEnabled = false;
+            SaoMaTabItem.IsEnabled = false;
+            QiTaTabItem.IsEnabled = false;
+            ZhiJuBianHao.IsReadOnly = true;
+            ZhiJuMingChen.IsReadOnly = true;
+            ZheXianRenYuan.IsReadOnly = true;
+            JiTaiBianHao.IsReadOnly = true;
+            ZhiJuBianHao.Text = CoorPar.ZhiJuBianHao;
+            ZhiJuMingChen.Text = CoorPar.ZhiJuMingChen;
+            ZheXianRenYuan.Text = CoorPar.ZheXianRenYuan;
+            JiTaiBianHao.Text = CoorPar.JiTaiBianHao;
+=======
+<<<<<<< HEAD
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
+            if (CoorPar.MuBanContrast != null)
+            {
+                MuBanContrast.Text = CoorPar.MuBanContrast.D.ToString();
+            }
+            if (CoorPar.ShuXianPixNum != null)
+            {
+                ShuXianPixNum.Text = CoorPar.ShuXianPixNum.D.ToString();
+            }
+            if (CoorPar.ShuXianThreshold != null)
+            {
+                ShuXianThreshold.Text = CoorPar.ShuXianThreshold.D.ToString();
+            }
+            if (CoorPar.HengXianPixNum != null)
+            {
+                HengXianPixNum.Text = CoorPar.HengXianPixNum.D.ToString();
+            }
+            if (CoorPar.HengXianThreshold != null)
+            {
+                HengXianThreshold.Text = CoorPar.HengXianThreshold.D.ToString();
+            }
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             Scan.ini(CoorPar.ScanCom);
             Scan.Connect();
             MsgTextBox.Text = AddMessage("扫码枪连接");
@@ -1029,6 +1589,10 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             hSmartWindowControlWPF1.HalconWindow.DispObj(image);
             dispatcherTimer.Tick += new EventHandler(GrapContinue);
             dispatcherTimer.Interval = new TimeSpan(1000000);//100毫微秒为单位
+            if (!Directory.Exists(@"D:\image"))
+            {
+                Directory.CreateDirectory(@"D:\image");
+            }
             try
             {
                 aS300ModbusTCP = new AS300ModbusTCP();
@@ -1040,7 +1604,20 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             {
                 MsgTextBox.Text = AddMessage(ex.Message);
             }
+            //datagrid.ItemsSource = (System.Collections.IEnumerable)mySQLClass.test().Tables[0];
+            //var aaaa = mySQLClass.test().Tables[0];
+            //try
+            //{
+            //    iCImagingControl.LoadDeviceStateFromFile("device.xml", true);
+            //}
+            //catch (Exception ex)
+            //{
 
+<<<<<<< HEAD
+            //    MsgTextBox.Text = AddMessage(ex.Message);
+            //}
+
+=======
             
             //try
             //{
@@ -1052,6 +1629,7 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
             //    MsgTextBox.Text = AddMessage(ex.Message);
             //}
 
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
             //if (!iCImagingControl.DeviceValid)
             //{
             //    iCImagingControl.ShowDeviceSettingsDialog();
@@ -1154,6 +1732,22 @@ new HTuple(1.0).TupleRad().D, "none", "use_polarity", 25, 10);
         public double X0;
         public double Y0;
         public string ScanCom;
+<<<<<<< HEAD
+        public HTuple ShuXianThreshold;
+        public HTuple ShuXianPixNum;
+        public HTuple HengXianThreshold;
+        public HTuple HengXianPixNum;
+        public HTuple MuBanContrast;
+<<<<<<< HEAD
+        public string ZhiJuBianHao;
+        public string ZhiJuMingChen;
+        public string ZheXianRenYuan;
+        public string JiTaiBianHao;
+
+=======
+=======
+>>>>>>> 46aa52aabcac5f481d37b8e1f6666a5db81d13d6
+>>>>>>> 6eaf2a672ec9ef43f567ac68a0061c34aecd0093
         public void Calc()
         {
             DisT = (Row1 - Row2) / (DRow1 - DRow2);
